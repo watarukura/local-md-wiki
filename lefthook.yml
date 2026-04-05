@@ -7,6 +7,9 @@ pre-commit:
     - name: oxfmt
       run: npx oxfmt@latest
       glob: "*.{js,ts,jsx,tsx}"
+    - name: test
+      run: npm test
+      glob: "*.{js,ts,jsx,tsx}"
     - name: actionlint
       glob: ".github/workflows/*.yam?l"
       run: actionlint
