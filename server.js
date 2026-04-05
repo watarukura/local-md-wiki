@@ -8,12 +8,12 @@ const __dirname = path.dirname(__filename);
 
 const app = createApp({
   pagesDir: path.join(__dirname, "pages"),
-  publicDir: path.join(__dirname, "public")
+  publicDir: path.join(__dirname, "public"),
 });
 
 serve({
   fetch: app.fetch,
-  port: 3000
+  port: 3000,
 });
 
 console.log("http://localhost:3000");

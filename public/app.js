@@ -49,7 +49,7 @@ async function savePage(name, markdown) {
   const res = await fetch("/api/page", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, markdown })
+    body: JSON.stringify({ name, markdown }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || "failed to save");
@@ -60,7 +60,7 @@ async function createPage(name, markdown = "") {
   const res = await fetch("/api/page", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, markdown })
+    body: JSON.stringify({ name, markdown }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || "failed to create");
@@ -73,7 +73,7 @@ async function uploadImage(file) {
 
   const res = await fetch("/api/upload", {
     method: "POST",
-    body: formData
+    body: formData,
   });
 
   const data = await res.json().catch(() => ({}));

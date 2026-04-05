@@ -186,8 +186,8 @@ export function createApp(options = {}) {
     "/static/*",
     serveStatic({
       root: publicDir,
-      rewriteRequestPath: (requestPath) => requestPath.replace(/^\/static/, "")
-    })
+      rewriteRequestPath: (requestPath) => requestPath.replace(/^\/static/, ""),
+    }),
   );
 
   app.get("/api/pages", (c) => {
@@ -211,7 +211,7 @@ export function createApp(options = {}) {
         markdown,
         html: marked.parse(markdown),
         backlinks: backlinksOf(name, graph),
-        twoHop: twoHopOf(name, graph)
+        twoHop: twoHopOf(name, graph),
       });
     } catch (err) {
       return c.json({ error: err.message }, 400);
@@ -255,7 +255,7 @@ export function createApp(options = {}) {
         name,
         html: marked.parse(markdown),
         backlinks: backlinksOf(name, graph),
-        twoHop: twoHopOf(name, graph)
+        twoHop: twoHopOf(name, graph),
       });
     } catch (err) {
       return c.json({ error: err.message }, 400);
@@ -290,7 +290,7 @@ export function createApp(options = {}) {
 
       return c.json({
         ok: true,
-        url: `/static/uploads/${fileName}`
+        url: `/static/uploads/${fileName}`,
       });
     } catch (err) {
       return c.json({ error: err.message }, 400);

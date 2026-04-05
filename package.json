@@ -6,12 +6,12 @@
   "bugs": {
     "url": "https://github.com/watarukura/local-md-wiki/issues"
   },
+  "license": "MIT",
+  "author": "watarukura",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/watarukura/local-md-wiki.git"
   },
-  "license": "MIT",
-  "author": "watarukura",
   "type": "module",
   "main": "server.js",
   "scripts": {
