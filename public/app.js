@@ -44,10 +44,7 @@ function normalizeInternalLinkTarget(href, currentPage) {
     ? currentPage.slice(0, currentPage.lastIndexOf("/"))
     : ".";
 
-  const joined =
-    currentDir === "."
-      ? decoded
-      : `${currentDir}/${decoded}`;
+  const joined = currentDir === "." ? decoded : `${currentDir}/${decoded}`;
 
   const parts = [];
   for (const part of joined.split("/")) {
