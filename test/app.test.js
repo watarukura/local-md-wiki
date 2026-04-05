@@ -41,31 +41,11 @@ test("GET /api/page returns page content, backlinks, and 2-hop links", async () 
   const publicDir = makeTempDir("wiki-public-");
   writeFile(publicDir, "index.html", "<!doctype html><html><body>ok</body></html>");
 
-  writeFile(
-    pagesDir,
-    "Home.md",
-    "# Home\n\n- [AWS](AWS.md)\n- [ECS](ECS.md)\n"
-  );
-  writeFile(
-    pagesDir,
-    "AWS.md",
-    "# AWS\n\n- [Home](Home.md)\n- [ECS](ECS.md)\n"
-  );
-  writeFile(
-    pagesDir,
-    "Notes.md",
-    "# Notes\n\n- [AWS](AWS.md)\n- [Other](Other.md)\n"
-  );
-  writeFile(
-    pagesDir,
-    "ECS.md",
-    "# ECS\n\n- [Home](Home.md)\n"
-  );
-  writeFile(
-    pagesDir,
-    "Other.md",
-    "# Other\n"
-  );
+  writeFile(pagesDir, "Home.md", "# Home\n\n- [AWS](AWS.md)\n- [ECS](ECS.md)\n");
+  writeFile(pagesDir, "AWS.md", "# AWS\n\n- [Home](Home.md)\n- [ECS](ECS.md)\n");
+  writeFile(pagesDir, "Notes.md", "# Notes\n\n- [AWS](AWS.md)\n- [Other](Other.md)\n");
+  writeFile(pagesDir, "ECS.md", "# ECS\n\n- [Home](Home.md)\n");
+  writeFile(pagesDir, "Other.md", "# Other\n");
 
   const app = createApp({ pagesDir, publicDir });
   const res = await app.request("/api/page?name=Home.md");
@@ -79,7 +59,7 @@ test("GET /api/page returns page content, backlinks, and 2-hop links", async () 
   assert.deepEqual(body.backlinks, ["AWS.md", "ECS.md"]);
   assert.deepEqual(body.twoHop, [
     { page: "AWS.md", score: 1 },
-    { page: "Notes.md", score: 1 }
+    { page: "Notes.md", score: 1 },
   ]);
 });
 
@@ -120,8 +100,8 @@ test("POST /api/page creates a new page", async () => {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       name: "NewPage.md",
-      markdown: "# NewPage\n"
-    })
+      markdown: "# NewPage\n",
+    }),
   });
 
   assert.equal(res.status, 200);
@@ -146,8 +126,8 @@ test("POST /api/page returns 409 when page already exists", async () => {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       name: "Home.md",
-      markdown: "# Changed\n"
-    })
+      markdown: "# Changed\n",
+    }),
   });
 
   assert.equal(res.status, 409);
@@ -169,8 +149,8 @@ test("PUT /api/page updates a page and recalculates backlinks", async () => {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       name: "Home.md",
-      markdown: "# Home\n\n- [AWS](AWS.md)\n"
-    })
+      markdown: "# Home\n\n- [AWS](AWS.md)\n",
+    }),
   });
 
   assert.equal(res.status, 200);
@@ -196,8 +176,8 @@ test("PUT /api/page normalizes name without .md", async () => {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       name: "Daily/2026-04-05",
-      markdown: "# Daily\n"
-    })
+      markdown: "# Daily\n",
+    }),
   });
 
   assert.equal(res.status, 200);
@@ -216,7 +196,7 @@ test("graph ignores external links and anchors", async () => {
   writeFile(
     pagesDir,
     "Home.md",
-    "# Home\n\n- [Google](https://google.com)\n- [Section](#section)\n- [AWS](AWS.md)\n"
+    "# Home\n\n- [Google](https://google.com)\n- [Section](#section)\n- [AWS](AWS.md)\n",
   );
   writeFile(pagesDir, "AWS.md", "# AWS\n");
 
@@ -249,16 +229,14 @@ test("POST /api/upload stores a png image and returns its URL", async () => {
 
   const app = createApp({ pagesDir, publicDir });
 
-  const pngBytes = new Uint8Array([
-    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
-  ]);
+  const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
   const formData = new FormData();
   formData.append("file", new File([pngBytes], "test.png", { type: "image/png" }));
 
   const res = await app.request("/api/upload", {
     method: "POST",
-    body: formData
+    body: formData,
   });
 
   assert.equal(res.status, 200);
@@ -281,11 +259,14 @@ test("POST /api/upload rejects unsupported image type", async () => {
   const app = createApp({ pagesDir, publicDir });
 
   const formData = new FormData();
-  formData.append("file", new File([new Uint8Array([1, 2, 3])], "x.svg", { type: "image/svg+xml" }));
+  formData.append(
+    "file",
+    new File([new Uint8Array([1, 2, 3])], "x.svg", { type: "image/svg+xml" }),
+  );
 
   const res = await app.request("/api/upload", {
     method: "POST",
-    body: formData
+    body: formData,
   });
 
   assert.equal(res.status, 400);
