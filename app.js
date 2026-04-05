@@ -15,8 +15,8 @@ const marked = new Marked(
         return hljs.highlight(code, { language: lang }).value;
       }
       return hljs.highlightAuto(code).value;
-    }
-  })
+    },
+  }),
 );
 
 export function createApp(options = {}) {

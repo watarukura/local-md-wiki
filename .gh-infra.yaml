@@ -23,16 +23,16 @@ spec:
     merge_commit_message: PR_TITLE
   release_immutability: true
   branch_protection:
-  - pattern: main
-    required_reviews: 0
-    dismiss_stale_reviews: false
-    require_code_owner_reviews: false
-    require_status_checks:
-      strict: false
-      contexts: []
-    enforce_admins: false
-    allow_force_pushes: false
-    allow_deletions: false
+    - pattern: main
+      required_reviews: 0
+      dismiss_stale_reviews: false
+      require_code_owner_reviews: false
+      require_status_checks:
+        strict: false
+        contexts: []
+      enforce_admins: false
+      allow_force_pushes: false
+      allow_deletions: false
   actions:
     enabled: true
     allowed_actions: all
