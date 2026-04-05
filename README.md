@@ -8,17 +8,17 @@
 
 ## 特徴
 
-* Markdown ファイルがそのまま実体
-* ブラウザから編集・保存
-* backlinks / 2-hop links 表示
-* 画像の貼り付け対応（clipboard → 自動アップロード）
+- Markdown ファイルがそのまま実体
+- ブラウザから編集・保存
+- backlinks / 2-hop links 表示
+- 画像の貼り付け対応（clipboard → 自動アップロード）
 
 ---
 
 ## 動作要件
 
-* Node.js 18+
-* aquaproj/aqua/aqua
+- Node.js 18+
+- aquaproj/aqua/aqua
 
 ---
 
@@ -69,12 +69,12 @@ http://localhost:3000
 
 ### ページの作成
 
-* 左ペインの `New` ボタン
-* 名前を入力（`.md` は省略可）
+- 左ペインの `New` ボタン
+- 名前を入力（`.md` は省略可）
 
 ### 編集
 
-* `Edit` → 編集 → `Save`
+- `Edit` → 編集 → `Save`
 
 ### 内部リンク
 
@@ -91,8 +91,8 @@ Markdown link を使用します:
 
 エディタに画像を **貼り付け（Ctrl+V / Cmd+V）** すると:
 
-* `/public/uploads/` に保存
-* Markdown が自動挿入される
+- `/public/uploads/` に保存
+- Markdown が自動挿入される
 
 ```md
 ![pasted image](/static/uploads/xxxxx.png)
@@ -100,7 +100,7 @@ Markdown link を使用します:
 
 対応形式:
 
-* png / jpeg / gif / webp
+- png / jpeg / gif / webp
 
 ---
 
@@ -131,7 +131,6 @@ B -> X
 console.log("hello");
 ```
 
-
 - highlight.js によるシンタックスハイライト
 - 言語未指定でも自動判定
 
@@ -141,21 +140,20 @@ console.log("hello");
 
 ```bash
 npm test
-````
+```
 
 ---
 
 ## 制限事項
 
-* 認証なし
-* 同時編集なし
-* 検索なし
-* 画像の削除・整理なし
-* 大規模データ非対応
+- 認証なし
+- 同時編集なし
+- 検索なし
+- 画像の削除・整理なし
+- 大規模データ非対応
 
 ---
 
 ## ライセンス
 
 MIT
-

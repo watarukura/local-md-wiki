@@ -11,16 +11,14 @@ const __dirname = path.dirname(__filename);
 const app = createApp({
   pagesDir: path.join(__dirname, "pages"),
   publicDir: path.join(__dirname, "public"),
-  port: 3000
+  port: 3000,
 });
 
-const port =
-  Number(process.env.LOCAL_MD_WIKI_PORT) ||
-  3000;
+const port = Number(process.env.LOCAL_MD_WIKI_PORT) || 3000;
 
 serve({
   fetch: app.fetch,
-  port
+  port,
 });
 
 console.log(`http://localhost:${port}`);

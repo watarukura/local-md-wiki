@@ -21,21 +21,11 @@ const marked = new Marked(
 
 export function createApp(options = {}) {
   const pagesDir = path.resolve(
-    process.env.LOCAL_MD_WIKI_PAGES_DIR ||
-    options.pagesDir ||
-    path.join(process.cwd(), "pages")
+    process.env.LOCAL_MD_WIKI_PAGES_DIR || options.pagesDir || path.join(process.cwd(), "pages"),
   );
 
   const publicDir = path.resolve(
-    process.env.LOCAL_MD_WIKI_PUBLIC_DIR ||
-    options.publicDir ||
-    path.join(process.cwd(), "public")
-  );
-
-  const port = Number(
-    process.env.LOCAL_MD_WIKI_PORT ||
-    options.port ||
-    3000
+    process.env.LOCAL_MD_WIKI_PUBLIC_DIR || options.publicDir || path.join(process.cwd(), "public"),
   );
 
   const uploadsDir = path.join(publicDir, "uploads");
