@@ -2,7 +2,22 @@ import { Hono } from "hono";
 import { serveStatic } from "@hono/node-server/serve-static";
 import fs from "node:fs";
 import path from "node:path";
-import { marked } from "marked";
+import { Marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import hljs from "highlight.js";
+
+const marked = new Marked(
+  markedHighlight({
+    langPrefix: "hljs language-",
+    emptyLangClass: "hljs",
+    highlight(code, lang) {
+      if (lang && hljs.getLanguage(lang)) {
+        return hljs.highlight(code, { language: lang }).value;
+      }
+      return hljs.highlightAuto(code).value;
+    }
+  })
+);
 
 export function createApp(options = {}) {
   if (!options.pagesDir) {

@@ -1,46 +1,50 @@
 <!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Local Markdown Wiki</title>
-    <link rel="stylesheet" href="/static/style.css" />
-  </head>
 
-  <body>
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <h1>Pages</h1>
-          <button id="new-page-button" type="button">New</button>
-        </div>
-        <ul id="page-list" class="page-list"></ul>
-      </aside>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Local Markdown Wiki</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" />
+</head>
 
-      <main class="main">
-        <div class="toolbar">
-          <input id="page-name" type="text" />
-          <button id="edit-button" type="button">Edit</button>
-          <button id="save-button" type="button" hidden>Save</button>
-          <button id="cancel-button" type="button" hidden>Cancel</button>
-        </div>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>Pages</h1>
+        <button id="new-page-button" type="button">New</button>
+      </div>
+      <ul id="page-list" class="page-list"></ul>
+    </aside>
 
-        <div id="viewer" class="viewer"></div>
-        <textarea id="editor" class="editor" hidden></textarea>
-      </main>
+    <main class="main">
+      <div class="toolbar">
+        <input id="page-name" type="text" />
+        <button id="edit-button" type="button">Edit</button>
+        <button id="save-button" type="button" hidden>Save</button>
+        <button id="cancel-button" type="button" hidden>Cancel</button>
+      </div>
 
-      <aside class="meta">
-        <section>
-          <h2>Backlinks</h2>
-          <ul id="backlinks"></ul>
-        </section>
-        <section>
-          <h2>2-hop links</h2>
-          <ul id="twohop"></ul>
-        </section>
-      </aside>
-    </div>
+      <div id="viewer" class="viewer"></div>
+      <textarea id="editor" class="editor" hidden></textarea>
+    </main>
 
-    <script type="module" src="/static/app.js"></script>
-  </body>
+    <aside class="meta">
+      <section>
+        <h2>Backlinks</h2>
+        <ul id="backlinks"></ul>
+      </section>
+      <section>
+        <h2>2-hop links</h2>
+        <ul id="twohop"></ul>
+      </section>
+    </aside>
+  </div>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+
 </html>

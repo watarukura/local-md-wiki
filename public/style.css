@@ -124,3 +124,15 @@ code {
   background: #f5f5f5;
   padding: 2px 4px;
 }
+
+.viewer pre {
+  overflow: auto;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.viewer pre code {
+  display: block;
+  background: transparent;
+  padding: 0;
+}
