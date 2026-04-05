@@ -20,15 +20,14 @@ const marked = new Marked(
 );
 
 export function createApp(options = {}) {
-  if (!options.pagesDir) {
-    throw new Error("pagesDir is required");
-  }
-  if (!options.publicDir) {
-    throw new Error("publicDir is required");
-  }
+  const pagesDir = path.resolve(
+    process.env.LOCAL_MD_WIKI_PAGES_DIR || options.pagesDir || path.join(process.cwd(), "pages"),
+  );
 
-  const pagesDir = path.resolve(options.pagesDir);
-  const publicDir = path.resolve(options.publicDir);
+  const publicDir = path.resolve(
+    process.env.LOCAL_MD_WIKI_PUBLIC_DIR || options.publicDir || path.join(process.cwd(), "public"),
+  );
+
   const uploadsDir = path.join(publicDir, "uploads");
 
   const app = new Hono();
