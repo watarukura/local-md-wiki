@@ -136,3 +136,8 @@ code {
   background: transparent;
   padding: 0;
 }
+
+.viewer a.missing-link {
+  color: #c62828;
+  text-decoration: underline;
+}

@@ -12,6 +12,7 @@ const newPageButton = document.getElementById("new-page-button");
 
 let currentPage = "Home.md";
 let currentMarkdown = "";
+let knownPages = new Set();
 
 function linkItem(page, extra = "") {
   const li = document.createElement("li");
@@ -21,6 +22,47 @@ function linkItem(page, extra = "") {
   a.textContent = extra ? `${page} (${extra})` : page;
   li.appendChild(a);
   return li;
+}
+
+function normalizeInternalLinkTarget(href, currentPage) {
+  if (!href) return null;
+  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(href)) return null;
+  if (href.startsWith("#")) return null;
+
+  const hrefWithoutHash = href.split("#")[0];
+  const hrefWithoutQuery = hrefWithoutHash.split("?")[0];
+  if (!hrefWithoutQuery) return null;
+
+  let decoded;
+  try {
+    decoded = decodeURIComponent(hrefWithoutQuery);
+  } catch {
+    decoded = hrefWithoutQuery;
+  }
+
+  const currentDir = currentPage.includes("/")
+    ? currentPage.slice(0, currentPage.lastIndexOf("/"))
+    : ".";
+
+  const joined = currentDir === "." ? decoded : `${currentDir}/${decoded}`;
+
+  const parts = [];
+  for (const part of joined.split("/")) {
+    if (!part || part === ".") continue;
+    if (part === "..") {
+      if (parts.length === 0) return null;
+      parts.pop();
+      continue;
+    }
+    parts.push(part);
+  }
+
+  let normalized = parts.join("/");
+  if (!normalized.endsWith(".md")) {
+    normalized += ".md";
+  }
+
+  return normalized;
 }
 
 function setEditing(editing) {
@@ -106,11 +148,21 @@ function rewriteInternalLinks(container) {
       continue;
     }
 
-    if (!href.endsWith(".md") && !href.includes(".md#")) continue;
+    const target = normalizeInternalLinkTarget(href, currentPage);
+    if (!target) continue;
+
+    a.dataset.page = target;
+
+    if (!knownPages.has(target)) {
+      a.classList.add("missing-link");
+      a.title = "Page does not exist yet";
+    } else {
+      a.classList.remove("missing-link");
+      a.removeAttribute("title");
+    }
 
     a.addEventListener("click", async (e) => {
       e.preventDefault();
-      const target = href.split("#")[0];
       await openPage(target);
     });
   }
@@ -125,6 +177,7 @@ function renderSideList(el, items, mapper) {
 
 async function refreshPageList(selectedPage = currentPage) {
   const data = await fetchPages();
+  knownPages = new Set(data.pages);
   pageListEl.innerHTML = "";
 
   for (const page of data.pages) {
@@ -140,33 +193,54 @@ async function refreshPageList(selectedPage = currentPage) {
 }
 
 async function openPage(name) {
-  const data = await fetchPage(name);
+  try {
+    const data = await fetchPage(name);
 
-  currentPage = data.name;
-  currentMarkdown = data.markdown;
+    currentPage = data.name;
+    currentMarkdown = data.markdown;
 
-  pageNameEl.value = data.name;
-  editorEl.value = data.markdown;
-  viewerEl.innerHTML = data.html;
-  rewriteInternalLinks(viewerEl);
+    pageNameEl.value = data.name;
+    editorEl.value = data.markdown;
+    viewerEl.innerHTML = data.html;
 
-  renderSideList(backlinksEl, data.backlinks, (page) => linkItem(page));
-  renderSideList(twoHopEl, data.twoHop, (item) => linkItem(item.page, `shared: ${item.score}`));
+    await refreshPageList(currentPage);
+    rewriteInternalLinks(viewerEl);
 
-  setEditing(false);
-  await refreshPageList(currentPage);
+    renderSideList(backlinksEl, data.backlinks, (page) => linkItem(page));
+    renderSideList(twoHopEl, data.twoHop, (item) => linkItem(item.page, `shared: ${item.score}`));
 
-  const url = new URL(window.location.href);
-  url.searchParams.set("page", currentPage);
-  history.replaceState({}, "", url);
+    setEditing(false);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", currentPage);
+    history.replaceState({}, "", url);
+  } catch (err) {
+    if (err.message.includes("page not found")) {
+      const ok = confirm(`"${name}" は存在しません。作成しますか？`);
+      if (!ok) return;
+
+      const normalizedName = name.endsWith(".md") ? name : `${name}.md`;
+      await createPage(normalizedName, `# ${normalizedName.replace(/\.md$/, "")}\n`);
+
+      currentPage = normalizedName;
+      currentMarkdown = `# ${normalizedName.replace(/\.md$/, "")}\n`;
+
+      pageNameEl.value = currentPage;
+      editorEl.value = currentMarkdown;
+      viewerEl.innerHTML = "";
+
+      await refreshPageList(currentPage);
+      setEditing(true);
+
+      const url = new URL(window.location.href);
+      url.searchParams.set("page", currentPage);
+      history.replaceState({}, "", url);
+      return;
+    }
+
+    alert(err.message);
+  }
 }
-
-pageListEl.addEventListener("click", async (e) => {
-  const a = e.target.closest("a[data-page]");
-  if (!a) return;
-  e.preventDefault();
-  await openPage(a.dataset.page);
-});
 
 backlinksEl.addEventListener("click", async (e) => {
   const a = e.target.closest("a[data-page]");
