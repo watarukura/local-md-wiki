@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: oxlint
+      run: oxlint {staged_files}
+      glob: "*.{js,ts,jsx,tsx}"
+    - name: oxfmt
+      run: npx oxfmt@latest
+      glob: "*.{js,ts,jsx,tsx}"
+    - name: actionlint
+      glob: ".github/workflows/*.yam?l"
+      run: actionlint
+    - name: gitleaks
+      run: gitleaks detect -v
+    - name: typos
+      run: typos .
