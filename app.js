@@ -14,11 +14,13 @@ export function createApp(options = {}) {
 
   const pagesDir = path.resolve(options.pagesDir);
   const publicDir = path.resolve(options.publicDir);
+  const uploadsDir = path.join(publicDir, "uploads");
 
   const app = new Hono();
-  function ensurePagesDir() {
-    if (!fs.existsSync(pagesDir)) {
-      fs.mkdirSync(pagesDir, { recursive: true });
+
+  function ensureDir(dir) {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
   }
 
@@ -150,6 +152,21 @@ export function createApp(options = {}) {
       .map(([page, score]) => ({ page, score }));
   }
 
+  function safeImageExtension(mimeType) {
+    switch (mimeType) {
+      case "image/png":
+        return ".png";
+      case "image/jpeg":
+        return ".jpg";
+      case "image/gif":
+        return ".gif";
+      case "image/webp":
+        return ".webp";
+      default:
+        return null;
+    }
+  }
+
   function serveIndex(c) {
     const indexPath = path.join(publicDir, "index.html");
 
@@ -161,20 +178,15 @@ export function createApp(options = {}) {
     return c.html(html);
   }
 
-  ensurePagesDir();
+  ensureDir(pagesDir);
+  ensureDir(publicDir);
+  ensureDir(uploadsDir);
 
   app.use(
     "/static/*",
     serveStatic({
       root: publicDir,
       rewriteRequestPath: (requestPath) => requestPath.replace(/^\/static/, "")
-    })
-  );
-
-  app.use(
-    "/favicon.ico",
-    serveStatic({
-      path: path.join(publicDir, "favicon.ico")
     })
   );
 
@@ -244,6 +256,41 @@ export function createApp(options = {}) {
         html: marked.parse(markdown),
         backlinks: backlinksOf(name, graph),
         twoHop: twoHopOf(name, graph)
+      });
+    } catch (err) {
+      return c.json({ error: err.message }, 400);
+    }
+  });
+
+  app.post("/api/upload", async (c) => {
+    try {
+      const formData = await c.req.formData();
+      const file = formData.get("file");
+
+      if (!(file instanceof File)) {
+        return c.json({ error: "file is required" }, 400);
+      }
+
+      const ext = safeImageExtension(file.type);
+      if (!ext) {
+        return c.json({ error: "unsupported image type" }, 400);
+      }
+
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      if (buffer.length > 10 * 1024 * 1024) {
+        return c.json({ error: "file too large" }, 400);
+      }
+
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${ext}`;
+      const fullPath = path.join(uploadsDir, fileName);
+
+      fs.writeFileSync(fullPath, buffer);
+
+      return c.json({
+        ok: true,
+        url: `/static/uploads/${fileName}`
       });
     } catch (err) {
       return c.json({ error: err.message }, 400);

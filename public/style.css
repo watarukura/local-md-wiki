@@ -71,6 +71,11 @@ button {
   font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+.viewer img {
+  max-width: 100%;
+  height: auto;
+}
+
 .page-list,
 .meta ul {
   list-style: none;
