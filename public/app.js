@@ -67,6 +67,34 @@ async function createPage(name, markdown = "") {
   return data;
 }
 
+async function uploadImage(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "failed to upload image");
+  return data.url;
+}
+
+function insertTextAtCursor(textarea, text) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const before = textarea.value.slice(0, start);
+  const after = textarea.value.slice(end);
+
+  textarea.value = before + text + after;
+
+  const cursor = start + text.length;
+  textarea.selectionStart = cursor;
+  textarea.selectionEnd = cursor;
+  textarea.focus();
+}
+
 function rewriteInternalLinks(container) {
   for (const a of container.querySelectorAll("a")) {
     const href = a.getAttribute("href");
@@ -184,6 +212,26 @@ newPageButton.addEventListener("click", async () => {
     await createPage(name, `# ${name.replace(/\.md$/, "")}\n`);
     await openPage(name);
     setEditing(true);
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+editorEl.addEventListener("paste", async (e) => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+
+  const imageItem = [...items].find((item) => item.type.startsWith("image/"));
+  if (!imageItem) return;
+
+  const file = imageItem.getAsFile();
+  if (!file) return;
+
+  e.preventDefault();
+
+  try {
+    const url = await uploadImage(file);
+    insertTextAtCursor(editorEl, `![pasted image](${url})`);
   } catch (err) {
     alert(err.message);
   }

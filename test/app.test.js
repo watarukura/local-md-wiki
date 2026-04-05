@@ -241,3 +241,54 @@ test("GET * serves index.html", async () => {
   const text = await res.text();
   assert.match(text, /INDEX/);
 });
+
+test("POST /api/upload stores a png image and returns its URL", async () => {
+  const pagesDir = makeTempDir("wiki-pages-");
+  const publicDir = makeTempDir("wiki-public-");
+  writeFile(publicDir, "index.html", "<!doctype html><html><body>ok</body></html>");
+
+  const app = createApp({ pagesDir, publicDir });
+
+  const pngBytes = new Uint8Array([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+  ]);
+
+  const formData = new FormData();
+  formData.append("file", new File([pngBytes], "test.png", { type: "image/png" }));
+
+  const res = await app.request("/api/upload", {
+    method: "POST",
+    body: formData
+  });
+
+  assert.equal(res.status, 200);
+  const body = await readJson(res);
+
+  assert.equal(body.ok, true);
+  assert.match(body.url, /^\/static\/uploads\/.+\.png$/);
+
+  const uploadsDir = path.join(publicDir, "uploads");
+  const files = fs.readdirSync(uploadsDir);
+  assert.equal(files.length, 1);
+  assert.match(files[0], /\.png$/);
+});
+
+test("POST /api/upload rejects unsupported image type", async () => {
+  const pagesDir = makeTempDir("wiki-pages-");
+  const publicDir = makeTempDir("wiki-public-");
+  writeFile(publicDir, "index.html", "<!doctype html><html><body>ok</body></html>");
+
+  const app = createApp({ pagesDir, publicDir });
+
+  const formData = new FormData();
+  formData.append("file", new File([new Uint8Array([1, 2, 3])], "x.svg", { type: "image/svg+xml" }));
+
+  const res = await app.request("/api/upload", {
+    method: "POST",
+    body: formData
+  });
+
+  assert.equal(res.status, 400);
+  const body = await readJson(res);
+  assert.equal(body.error, "unsupported image type");
+});
