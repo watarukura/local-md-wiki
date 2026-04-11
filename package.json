@@ -28,6 +28,8 @@
     "marked-highlight": "2.2.3"
   },
   "devDependencies": {
+    "oxfmt": "0.44.0",
+    "oxlint": "1.59.0",
     "playwright": "1.59.1"
   }
 }

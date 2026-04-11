@@ -5,7 +5,7 @@ pre-commit:
       run: oxlint {staged_files}
       glob: "*.{js,ts,jsx,tsx}"
     - name: oxfmt
-      run: npx oxfmt@latest
+      run: oxfmt {staged_files}
       glob: "*.{js,ts,jsx,tsx}"
     - name: test
       run: npm test
