@@ -25,7 +25,7 @@
 ## セットアップ
 
 ```bash
-npm install
+pnpm install
 ```
 
 ---
@@ -33,7 +33,7 @@ npm install
 ## 起動
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 アクセス:
@@ -139,7 +139,7 @@ console.log("hello");
 ## テスト
 
 ```bash
-npm test
+pnpm test
 ```
 
 ---
