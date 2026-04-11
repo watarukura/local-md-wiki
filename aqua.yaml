@@ -12,7 +12,6 @@ registries:
 packages:
   - name: evilmartians/lefthook@v2.1.4
   - name: rhysd/actionlint@v1.7.12
-  - name: oxc-project/oxc/oxlint@oxlint_v1.16.0
   - name: google/yamlfmt@v0.21.0
   - name: crate-ci/typos@v1.45.0
   - name: gitleaks/gitleaks@v8.30.1
