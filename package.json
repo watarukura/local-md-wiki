@@ -16,7 +16,9 @@
   "main": "server.js",
   "scripts": {
     "test": "node --test --experimental-test-coverage",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "lint": "oxlint",
+    "fmt": "oxfmt"
   },
   "dependencies": {
     "@hono/node-server": "1.19.13",

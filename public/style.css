@@ -149,6 +149,8 @@ code {
   overflow: auto;
   padding: 12px;
   border-radius: 6px;
+  background: #0d1117;
+  color: #c9d1d9;
 }
 
 .viewer pre code {

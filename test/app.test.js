@@ -315,3 +315,17 @@ test("POST /api/upload rejects unsupported image type", async () => {
   const body = await readJson(res);
   assert.equal(body.error, "unsupported image type");
 });
+
+test("GET /favicon.ico serves favicon.ico", async () => {
+  const pagesDir = makeTempDir("wiki-pages-");
+  const publicDir = makeTempDir("wiki-public-");
+  writeFile(publicDir, "index.html", "<!doctype html><html><body>ok</body></html>");
+  writeFile(publicDir, "favicon.ico", "FAVICON_CONTENT");
+
+  const app = createApp({ pagesDir, publicDir });
+  const res = await app.request("/favicon.ico");
+
+  assert.equal(res.status, 200);
+  const text = await res.text();
+  assert.equal(text, "FAVICON_CONTENT");
+});

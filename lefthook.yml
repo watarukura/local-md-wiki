@@ -2,13 +2,13 @@ pre-commit:
   parallel: true
   jobs:
     - name: oxlint
-      run: oxlint {staged_files}
+      run: pnpm oxlint
       glob: "*.{js,ts,jsx,tsx}"
     - name: oxfmt
-      run: oxfmt {staged_files}
+      run: pnpm fmt
       glob: "*.{js,ts,jsx,tsx}"
     - name: test
-      run: npm test
+      run: pnpm test
       glob: "*.{js,ts,jsx,tsx}"
     - name: actionlint
       glob: ".github/workflows/*.yam?l"
