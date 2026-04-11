@@ -13,6 +13,19 @@ const saveButton = document.getElementById("save-button");
 const editButton = document.getElementById("edit-button");
 const cancelButton = document.getElementById("cancel-button");
 const newPageButton = document.getElementById("new-page-button");
+const menuButton = document.getElementById("menu-button");
+const metaButton = document.getElementById("meta-button");
+const layoutEl = document.querySelector(".layout");
+
+menuButton.addEventListener("click", () => {
+  layoutEl.classList.remove("meta-open");
+  layoutEl.classList.toggle("sidebar-open");
+});
+
+metaButton.addEventListener("click", () => {
+  layoutEl.classList.remove("sidebar-open");
+  layoutEl.classList.toggle("meta-open");
+});
 
 let currentPage = "Home.md";
 let currentMarkdown = "";
@@ -95,7 +108,15 @@ function setEditing(editing) {
   editButton.hidden = editing;
   cancelButton.hidden = !editing;
   pageNameEl.readOnly = !editing;
+
+  // Hide menu buttons when editing to save space on mobile
+  menuButton.hidden = editing;
+  metaButton.hidden = editing;
+
   if (editing) {
+    // Close sidebars when entering edit mode on mobile
+    layoutEl.classList.remove("sidebar-open");
+    layoutEl.classList.remove("meta-open");
     setTimeout(() => editorView.focus(), 0);
   }
 }
@@ -250,6 +271,9 @@ async function openPage(name) {
     renderSideList(twoHopEl, data.twoHop, (item) => linkItem(item.page, `shared: ${item.score}`));
 
     setEditing(false);
+    // Close sidebars on navigation (useful for mobile)
+    layoutEl.classList.remove("sidebar-open");
+    layoutEl.classList.remove("meta-open");
 
     const url = new URL(window.location.href);
     url.searchParams.set("page", currentPage);

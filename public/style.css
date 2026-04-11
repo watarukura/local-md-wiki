@@ -181,3 +181,63 @@ code {
   background: #f9f9f9;
   border-top: none;
 }
+
+/* Responsive design */
+.menu-button {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 200px 1fr 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .menu-button {
+    display: block;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    padding: 0 8px;
+  }
+
+  .layout {
+    grid-template-columns: 0 1fr 0;
+    transition: grid-template-columns 0.3s ease;
+  }
+
+  .layout.sidebar-open {
+    grid-template-columns: 260px 1fr 0;
+  }
+
+  .layout.meta-open {
+    grid-template-columns: 0 1fr 280px;
+  }
+
+  .sidebar,
+  .meta {
+    overflow: hidden;
+    border: none;
+    transition: padding 0.3s ease;
+  }
+
+  .layout.sidebar-open .sidebar,
+  .layout.meta-open .meta {
+    overflow: auto;
+  }
+
+  .sidebar {
+    border-right: 1px solid #ddd;
+  }
+
+  .meta {
+    border-left: 1px solid #ddd;
+  }
+
+  .layout:not(.sidebar-open) .sidebar,
+  .layout:not(.meta-open) .meta {
+    padding: 0;
+    border: none;
+  }
+}
