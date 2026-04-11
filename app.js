@@ -5,6 +5,7 @@ import path from "node:path";
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
+import matter from "gray-matter";
 
 const marked = new Marked(
   markedHighlight({
@@ -127,7 +128,8 @@ export function createApp(options = {}) {
 
     for (const file of files) {
       const full = path.join(pagesDir, file);
-      const content = fs.readFileSync(full, "utf8");
+      const raw = fs.readFileSync(full, "utf8");
+      const { content } = matter(raw);
       graph[file] = extractInternalLinks(content, file);
     }
 
@@ -205,7 +207,26 @@ export function createApp(options = {}) {
   );
 
   app.get("/api/pages", (c) => {
-    return c.json({ pages: listMarkdownFiles(pagesDir) });
+    const files = listMarkdownFiles(pagesDir);
+    const pages = files.map((file) => {
+      const full = path.join(pagesDir, file);
+      const raw = fs.readFileSync(full, "utf8");
+      const { data, content } = matter(raw);
+
+      let title = data.title;
+      if (!title) {
+        const match = content.match(/^#\s+(.+)$/m);
+        if (match) {
+          title = match[1].trim();
+        }
+      }
+      if (!title) {
+        title = file;
+      }
+
+      return { name: file, title };
+    });
+    return c.json({ pages });
   });
 
   app.get("/api/page", (c) => {
@@ -217,13 +238,15 @@ export function createApp(options = {}) {
         return c.json({ error: "page not found" }, 404);
       }
 
-      const markdown = fs.readFileSync(full, "utf8");
+      const raw = fs.readFileSync(full, "utf8");
+      const { data, content } = matter(raw);
       const graph = buildGraph();
 
       return c.json({
         name,
-        markdown,
-        html: marked.parse(markdown),
+        markdown: raw, // raw includes frontmatter
+        frontmatter: data,
+        html: marked.parse(content),
         backlinks: backlinksOf(name, graph),
         twoHop: twoHopOf(name, graph),
       });
@@ -236,15 +259,27 @@ export function createApp(options = {}) {
     try {
       const body = await c.req.json();
       const name = normalizePageName(body.name);
-      const markdown = String(body.markdown ?? "");
+      const rawMarkdown = String(body.markdown ?? "");
       const full = pagePath(name);
 
       if (fs.existsSync(full)) {
         return c.json({ error: "page already exists" }, 409);
       }
 
+      const { data, content } = matter(rawMarkdown);
+      const now = new Date().toISOString();
+      const newData = {
+        title: data.title || body.title || "",
+        tags: Array.isArray(data.tags) ? data.tags : Array.isArray(body.tags) ? body.tags : [],
+        ...data,
+        created_at: data.created_at || now,
+        updated_at: now,
+      };
+
+      const finalMarkdown = matter.stringify(content, newData);
+
       fs.mkdirSync(path.dirname(full), { recursive: true });
-      fs.writeFileSync(full, markdown, "utf8");
+      fs.writeFileSync(full, finalMarkdown, "utf8");
 
       return c.json({ ok: true, name });
     } catch (err) {
@@ -256,18 +291,35 @@ export function createApp(options = {}) {
     try {
       const body = await c.req.json();
       const name = normalizePageName(body.name);
-      const markdown = String(body.markdown ?? "");
+      const rawMarkdown = String(body.markdown ?? "");
       const full = pagePath(name);
 
+      let existingData = {};
+      if (fs.existsSync(full)) {
+        const raw = fs.readFileSync(full, "utf8");
+        existingData = matter(raw).data;
+      }
+
+      const { data, content } = matter(rawMarkdown);
+      const now = new Date().toISOString();
+      const newData = {
+        ...existingData,
+        ...data,
+        created_at: data.created_at || existingData.created_at || now,
+        updated_at: now,
+      };
+
+      const finalMarkdown = matter.stringify(content, newData);
+
       fs.mkdirSync(path.dirname(full), { recursive: true });
-      fs.writeFileSync(full, markdown, "utf8");
+      fs.writeFileSync(full, finalMarkdown, "utf8");
 
       const graph = buildGraph();
 
       return c.json({
         ok: true,
         name,
-        html: marked.parse(markdown),
+        html: marked.parse(content),
         backlinks: backlinksOf(name, graph),
         twoHop: twoHopOf(name, graph),
       });
