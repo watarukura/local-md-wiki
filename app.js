@@ -206,6 +206,13 @@ export function createApp(options = {}) {
     }),
   );
 
+  app.get(
+    "/favicon.ico",
+    serveStatic({
+      path: path.relative(process.cwd(), path.join(publicDir, "favicon.ico")),
+    }),
+  );
+
   app.get("/api/pages", (c) => {
     const files = listMarkdownFiles(pagesDir);
     const pages = files.map((file) => {
