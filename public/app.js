@@ -91,7 +91,10 @@ async function savePage(name, markdown) {
   const res = await fetch("/api/page", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, markdown }),
+    body: JSON.stringify({
+      name,
+      markdown,
+    }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || "failed to save");
@@ -102,7 +105,10 @@ async function createPage(name, markdown = "") {
   const res = await fetch("/api/page", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, markdown }),
+    body: JSON.stringify({
+      name,
+      markdown,
+    }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || "failed to create");
@@ -177,16 +183,16 @@ function renderSideList(el, items, mapper) {
 
 async function refreshPageList(selectedPage = currentPage) {
   const data = await fetchPages();
-  knownPages = new Set(data.pages);
+  knownPages = new Set(data.pages.map((p) => p.name));
   pageListEl.innerHTML = "";
 
   for (const page of data.pages) {
     const li = document.createElement("li");
     const a = document.createElement("a");
-    a.href = `/?page=${encodeURIComponent(page)}`;
-    a.dataset.page = page;
-    a.textContent = page;
-    if (page === selectedPage) a.classList.add("active");
+    a.href = `/?page=${encodeURIComponent(page.name)}`;
+    a.dataset.page = page.name;
+    a.textContent = page.title;
+    if (page.name === selectedPage) a.classList.add("active");
     li.appendChild(a);
     pageListEl.appendChild(li);
   }
@@ -201,7 +207,16 @@ async function openPage(name) {
 
     pageNameEl.value = data.name;
     editorEl.value = data.markdown;
-    viewerEl.innerHTML = data.html;
+
+    let html = "";
+    if (data.frontmatter?.title) {
+      html += `<h1>${data.frontmatter.title}</h1>`;
+    }
+    if (data.frontmatter?.tags && data.frontmatter.tags.length > 0) {
+      html += `<div class="tags">${data.frontmatter.tags.map((t) => `<span class="tag">#${t}</span>`).join(" ")}</div>`;
+    }
+    html += data.html;
+    viewerEl.innerHTML = html;
 
     await refreshPageList(currentPage);
     rewriteInternalLinks(viewerEl);

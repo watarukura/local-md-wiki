@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import matter from "gray-matter";
 import { createApp } from "../app.js";
 
 function makeTempDir(prefix) {
@@ -19,12 +20,13 @@ async function readJson(res) {
   return await res.json();
 }
 
-test("GET /api/pages returns markdown files only", async () => {
+test("GET /api/pages returns pages with titles from frontmatter, H1, or filename", async () => {
   const pagesDir = makeTempDir("wiki-pages-");
   const publicDir = makeTempDir("wiki-public-");
 
   writeFile(pagesDir, "Home.md", "# Home");
-  writeFile(pagesDir, "AWS.md", "# AWS");
+  writeFile(pagesDir, "AWS.md", "---\ntitle: Amazon Web Services\n---\n# AWS");
+  writeFile(pagesDir, "NoTitle.md", "Just content");
   writeFile(pagesDir, "ignore.txt", "ignore");
   writeFile(publicDir, "index.html", "<!doctype html><html><body>ok</body></html>");
 
@@ -33,7 +35,11 @@ test("GET /api/pages returns markdown files only", async () => {
 
   assert.equal(res.status, 200);
   const body = await readJson(res);
-  assert.deepEqual(body.pages, ["AWS.md", "Home.md"]);
+  assert.deepEqual(body.pages, [
+    { name: "AWS.md", title: "Amazon Web Services" },
+    { name: "Home.md", title: "Home" },
+    { name: "NoTitle.md", title: "NoTitle.md" },
+  ]);
 });
 
 test("GET /api/page returns page content, backlinks, and 2-hop links", async () => {
@@ -55,6 +61,10 @@ test("GET /api/page returns page content, backlinks, and 2-hop links", async () 
 
   assert.equal(body.name, "Home.md");
   assert.match(body.markdown, /# Home/);
+  // markdown should now include frontmatter if it exists
+  const { content } = matter(body.markdown);
+  assert.equal(content.trim(), "# Home\n\n- [AWS](AWS.md)\n- [ECS](ECS.md)");
+
   assert.match(body.html, /Home/);
   assert.deepEqual(body.backlinks, ["AWS.md", "ECS.md"]);
   assert.deepEqual(body.twoHop, [
@@ -111,7 +121,11 @@ test("POST /api/page creates a new page", async () => {
   assert.equal(body.name, "NewPage.md");
 
   const saved = fs.readFileSync(path.join(pagesDir, "NewPage.md"), "utf8");
-  assert.equal(saved, "# NewPage\n");
+  const { data, content } = matter(saved);
+  assert.equal(content.trim(), "# NewPage");
+  assert.equal(data.title, "");
+  assert.ok(data.created_at);
+  assert.ok(data.updated_at);
 });
 
 test("POST /api/page returns 409 when page already exists", async () => {
@@ -162,7 +176,10 @@ test("PUT /api/page updates a page and recalculates backlinks", async () => {
   assert.deepEqual(body.twoHop, []);
 
   const saved = fs.readFileSync(path.join(pagesDir, "Home.md"), "utf8");
-  assert.equal(saved, "# Home\n\n- [AWS](AWS.md)\n");
+  const { data, content } = matter(saved);
+  assert.equal(content.trim(), "# Home\n\n- [AWS](AWS.md)");
+  assert.ok(data.created_at);
+  assert.ok(data.updated_at);
 });
 
 test("PUT /api/page normalizes name without .md", async () => {
@@ -186,6 +203,31 @@ test("PUT /api/page normalizes name without .md", async () => {
 
   const full = path.join(pagesDir, "Daily", "2026-04-05.md");
   assert.equal(fs.existsSync(full), true);
+});
+
+test("PUT /api/page updates metadata (title and tags) via frontmatter in markdown", async () => {
+  const pagesDir = makeTempDir("wiki-pages-");
+  const publicDir = makeTempDir("wiki-public-");
+  writeFile(publicDir, "index.html", "<!doctype html><html><body>ok</body></html>");
+  writeFile(pagesDir, "Home.md", "# Home\n");
+
+  const app = createApp({ pagesDir, publicDir });
+  const res = await app.request("/api/page", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      name: "Home.md",
+      markdown: "---\ntitle: My Home Page\ntags: [wiki, home]\n---\n# Home\n",
+    }),
+  });
+
+  assert.equal(res.status, 200);
+  const saved = fs.readFileSync(path.join(pagesDir, "Home.md"), "utf8");
+  const { data } = matter(saved);
+  assert.equal(data.title, "My Home Page");
+  assert.deepEqual(data.tags, ["wiki", "home"]);
+  assert.ok(data.created_at);
+  assert.ok(data.updated_at);
 });
 
 test("graph ignores external links and anchors", async () => {

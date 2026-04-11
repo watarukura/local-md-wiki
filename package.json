@@ -15,12 +15,13 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "test": "node --test",
+    "test": "node --test --experimental-test-coverage",
     "dev": "node server.js"
   },
   "dependencies": {
     "@hono/node-server": "1.19.12",
     "dotenv": "17.4.0",
+    "gray-matter": "4.0.3",
     "highlight.js": "11.11.1",
     "hono": "4.12.10",
     "marked": "15.0.7",
