@@ -1,3 +1,7 @@
+import { EditorView, basicSetup } from "https://esm.sh/codemirror";
+import { Vim, vim } from "https://esm.sh/@replit/codemirror-vim";
+import { markdown } from "https://esm.sh/@codemirror/lang-markdown";
+
 const pageListEl = document.getElementById("page-list");
 const pageNameEl = document.getElementById("page-name");
 const viewerEl = document.getElementById("viewer");
@@ -5,14 +9,33 @@ const editorEl = document.getElementById("editor");
 const backlinksEl = document.getElementById("backlinks");
 const twoHopEl = document.getElementById("twohop");
 
-const editButton = document.getElementById("edit-button");
 const saveButton = document.getElementById("save-button");
+const editButton = document.getElementById("edit-button");
 const cancelButton = document.getElementById("cancel-button");
 const newPageButton = document.getElementById("new-page-button");
 
 let currentPage = "Home.md";
 let currentMarkdown = "";
 let knownPages = new Set();
+
+const editorView = new EditorView({
+  doc: "",
+  extensions: [basicSetup, vim(), markdown(), EditorView.lineWrapping],
+  parent: editorEl,
+});
+
+Vim.defineEx("write", "w", () => {
+  saveButton.click();
+});
+Vim.defineEx("quit", "q", () => {
+  cancelButton.click();
+});
+Vim.defineEx("wq", "wq", () => {
+  saveButton.click();
+});
+Vim.defineEx("x", "x", () => {
+  saveButton.click();
+});
 
 function linkItem(page, extra = "") {
   const li = document.createElement("li");
@@ -68,10 +91,13 @@ function normalizeInternalLinkTarget(href, currentPage) {
 function setEditing(editing) {
   viewerEl.hidden = editing;
   editorEl.hidden = !editing;
-  editButton.hidden = editing;
   saveButton.hidden = !editing;
+  editButton.hidden = editing;
   cancelButton.hidden = !editing;
   pageNameEl.readOnly = !editing;
+  if (editing) {
+    setTimeout(() => editorView.focus(), 0);
+  }
 }
 
 async function fetchPages() {
@@ -129,18 +155,15 @@ async function uploadImage(file) {
   return data.url;
 }
 
-function insertTextAtCursor(textarea, text) {
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const before = textarea.value.slice(0, start);
-  const after = textarea.value.slice(end);
-
-  textarea.value = before + text + after;
-
-  const cursor = start + text.length;
-  textarea.selectionStart = cursor;
-  textarea.selectionEnd = cursor;
-  textarea.focus();
+function insertTextAtCursor(view, text) {
+  const { state } = view;
+  const range = state.selection.main;
+  view.dispatch({
+    changes: { from: range.from, to: range.to, insert: text },
+    selection: { anchor: range.from + text.length },
+    scrollIntoView: true,
+  });
+  view.focus();
 }
 
 function rewriteInternalLinks(container) {
@@ -206,7 +229,9 @@ async function openPage(name) {
     currentMarkdown = data.markdown;
 
     pageNameEl.value = data.name;
-    editorEl.value = data.markdown;
+    editorView.dispatch({
+      changes: { from: 0, to: editorView.state.doc.length, insert: data.markdown },
+    });
 
     let html = "";
     if (data.frontmatter?.title) {
@@ -241,7 +266,9 @@ async function openPage(name) {
       currentMarkdown = `# ${normalizedName.replace(/\.md$/, "")}\n`;
 
       pageNameEl.value = currentPage;
-      editorEl.value = currentMarkdown;
+      editorView.dispatch({
+        changes: { from: 0, to: editorView.state.doc.length, insert: currentMarkdown },
+      });
       viewerEl.innerHTML = "";
 
       await refreshPageList(currentPage);
@@ -271,21 +298,22 @@ twoHopEl.addEventListener("click", async (e) => {
   await openPage(a.dataset.page);
 });
 
-editButton.addEventListener("click", () => {
-  editorEl.value = currentMarkdown;
-  setEditing(true);
-});
-
 cancelButton.addEventListener("click", () => {
-  editorEl.value = currentMarkdown;
+  editorView.dispatch({
+    changes: { from: 0, to: editorView.state.doc.length, insert: currentMarkdown },
+  });
   pageNameEl.value = currentPage;
   setEditing(false);
+});
+
+editButton.addEventListener("click", () => {
+  setEditing(true);
 });
 
 saveButton.addEventListener("click", async () => {
   try {
     const name = pageNameEl.value.trim() || currentPage;
-    const markdown = editorEl.value;
+    const markdown = editorView.state.doc.toString();
     await savePage(name, markdown);
     await openPage(name);
   } catch (err) {
@@ -306,27 +334,41 @@ newPageButton.addEventListener("click", async () => {
   }
 });
 
-editorEl.addEventListener("paste", async (e) => {
-  const items = e.clipboardData?.items;
-  if (!items) return;
+editorEl.addEventListener(
+  "paste",
+  async (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
 
-  const imageItem = [...items].find((item) => item.type.startsWith("image/"));
-  if (!imageItem) return;
+    const imageItem = [...items].find((item) => item.type.startsWith("image/"));
+    if (!imageItem) return;
 
-  const file = imageItem.getAsFile();
-  if (!file) return;
+    const file = imageItem.getAsFile();
+    if (!file) return;
 
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const url = await uploadImage(file);
-    insertTextAtCursor(editorEl, `![pasted image](${url})`);
-  } catch (err) {
-    alert(err.message);
+    try {
+      const url = await uploadImage(file);
+      insertTextAtCursor(editorView, `![pasted image](${url})`);
+    } catch (err) {
+      alert(err.message);
+    }
+  },
+  true,
+);
+
+const initialPage = new URL(window.location.href).searchParams.get("page") || "Home.md";
+
+window.addEventListener("keydown", (e) => {
+  if (!viewerEl.hidden && (e.target === document.body || viewerEl.contains(e.target))) {
+    if (e.key === "i" || e.key === "a" || e.key === "e") {
+      e.preventDefault();
+      setEditing(true);
+    }
   }
 });
 
-const initialPage = new URL(window.location.href).searchParams.get("page") || "Home.md";
 refreshPageList(initialPage)
   .then(() => openPage(initialPage))
   .catch((err) => {

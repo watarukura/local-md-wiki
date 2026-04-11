@@ -10,6 +10,10 @@ body {
   font-family: system-ui, sans-serif;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   height: 100vh;
 }
@@ -17,6 +21,7 @@ body {
 .layout {
   display: grid;
   grid-template-columns: 260px 1fr 280px;
+  grid-template-rows: 1fr;
   height: 100vh;
 }
 
@@ -36,6 +41,8 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  height: 100%;
 }
 
 .toolbar {
@@ -43,6 +50,7 @@ body {
   gap: 8px;
   padding: 12px;
   border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
 }
 
 .toolbar input {
@@ -59,21 +67,33 @@ button {
 .viewer,
 .editor {
   flex: 1;
-  overflow: auto;
+  min-height: 0;
+}
+
+.viewer {
   padding: 20px;
+  overflow: auto;
 }
 
 .editor {
-  width: 100%;
-  border: none;
-  resize: none;
-  outline: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cm-editor {
+  height: 100%;
+  flex: 1;
   font:
     14px/1.6 ui-monospace,
     SFMono-Regular,
     Menlo,
     Consolas,
     monospace;
+}
+
+.cm-scroller {
+  overflow: auto;
 }
 
 .viewer img {
