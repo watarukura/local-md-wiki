@@ -16,9 +16,11 @@
   "main": "server.js",
   "scripts": {
     "lint": "oxlint",
-    "fmt": "oxfmt"
+    "fmt": "oxfmt",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "1.59.1",
     "oxfmt": "0.44.0",
     "oxlint": "1.59.0"
   }
