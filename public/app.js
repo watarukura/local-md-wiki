@@ -1,4 +1,6 @@
 import { EditorView, basicSetup } from "https://esm.sh/codemirror";
+import { Compartment } from "https://esm.sh/@codemirror/state";
+import { oneDark } from "https://esm.sh/@codemirror/theme-one-dark";
 import { Vim, vim } from "https://esm.sh/@replit/codemirror-vim";
 import { markdown } from "https://esm.sh/@codemirror/lang-markdown";
 
@@ -31,11 +33,29 @@ let currentPage = "Home.md";
 let currentMarkdown = "";
 let knownPages = new Set();
 
+const themeConfig = new Compartment();
+
 const editorView = new EditorView({
   doc: "",
-  extensions: [basicSetup, vim(), markdown(), EditorView.lineWrapping],
+  extensions: [
+    basicSetup,
+    vim(),
+    markdown(),
+    EditorView.lineWrapping,
+    themeConfig.of(
+      window.matchMedia("(prefers-color-scheme: dark)").matches ? oneDark : [],
+    ),
+  ],
   parent: editorEl,
 });
+
+window
+  .matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", (e) => {
+    editorView.dispatch({
+      effects: themeConfig.reconfigure(e.matches ? oneDark : []),
+    });
+  });
 
 Vim.defineEx("write", "w", () => {
   saveButton.click();

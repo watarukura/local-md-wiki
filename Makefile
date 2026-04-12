@@ -14,6 +14,13 @@ build: ## Build the binary
 test: ## Run tests
 	go test -v ./...
 
+.PHONY: test-e2e
+test-e2e: ## Run e2e tests
+	rm -rf tests/pages/*.md
+	mkdir -p tests/pages
+	echo "# Test Home" > tests/pages/Home.md
+	pnpm test:e2e
+
 .PHONY: lint
 lint: ## Run linting
 	golangci-lint run ./...
