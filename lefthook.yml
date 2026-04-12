@@ -8,8 +8,14 @@ pre-commit:
       run: pnpm fmt
       glob: "*.{js,ts,jsx,tsx}"
     - name: test
-      run: pnpm test
-      glob: "*.{js,ts,jsx,tsx}"
+      run: make test
+      glob: "*.go"
+    - name: go fmt
+      run: make format
+      glob: "*.go"
+    - name: go lint
+      run: make lint
+      glob: "*.go"
     - name: actionlint
       glob: ".github/workflows/*.yam?l"
       run: actionlint
