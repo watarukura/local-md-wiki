@@ -42,20 +42,16 @@ const editorView = new EditorView({
     vim(),
     markdown(),
     EditorView.lineWrapping,
-    themeConfig.of(
-      window.matchMedia("(prefers-color-scheme: dark)").matches ? oneDark : [],
-    ),
+    themeConfig.of(window.matchMedia("(prefers-color-scheme: dark)").matches ? oneDark : []),
   ],
   parent: editorEl,
 });
 
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", (e) => {
-    editorView.dispatch({
-      effects: themeConfig.reconfigure(e.matches ? oneDark : []),
-    });
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+  editorView.dispatch({
+    effects: themeConfig.reconfigure(e.matches ? oneDark : []),
   });
+});
 
 Vim.defineEx("write", "w", () => {
   saveButton.click();
