@@ -42,6 +42,29 @@ const editorView = new EditorView({
     vim(),
     markdown(),
     EditorView.lineWrapping,
+    EditorView.domEventHandlers({
+      paste: (e, view) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        const imageItem = Array.from(items).find((item) => item.type.startsWith("image/"));
+        if (!imageItem) return;
+
+        const file = imageItem.getAsFile();
+        if (!file) return;
+
+        e.preventDefault();
+
+        uploadImage(file)
+          .then((url) => {
+            insertTextAtCursor(view, `![pasted image](${url})`);
+          })
+          .catch((err) => {
+            alert(err.message);
+          });
+        return true;
+      },
+    }),
     themeConfig.of(window.matchMedia("(prefers-color-scheme: dark)").matches ? oneDark : []),
   ],
   parent: editorEl,
@@ -260,7 +283,7 @@ async function refreshPageList(selectedPage = currentPage) {
   }
 }
 
-async function openPage(name) {
+async function openPage(name, showConfirm = true) {
   try {
     const data = await fetchPage(name);
 
@@ -302,6 +325,13 @@ async function openPage(name) {
     history.replaceState({}, "", url);
   } catch (err) {
     if (err.message.includes("page not found")) {
+      if (!showConfirm) {
+        viewerEl.innerHTML = `<div class="not-found">
+          <p>"${name}" は存在しません。</p>
+          <button class="btn btn-primary" onclick="createNewPage('${name}')">新しく作成する</button>
+        </div>`;
+        return;
+      }
       const ok = confirm(`"${name}" は存在しません。作成しますか？`);
       if (!ok) return;
 
@@ -329,6 +359,17 @@ async function openPage(name) {
     alert(err.message);
   }
 }
+
+window.createNewPage = async (name) => {
+  const normalizedName = name.endsWith(".md") ? name : `${name}.md`;
+  try {
+    await createPage(normalizedName, `# ${normalizedName.replace(/\.md$/, "")}\n`);
+    await openPage(normalizedName);
+    setEditing(true);
+  } catch (err) {
+    alert(err.message);
+  }
+};
 
 backlinksEl.addEventListener("click", async (e) => {
   const a = e.target.closest("a[data-page]");
@@ -380,31 +421,20 @@ newPageButton.addEventListener("click", async () => {
   }
 });
 
-editorEl.addEventListener(
-  "paste",
-  async (e) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
+(async () => {
+  const data = await fetchPages();
+  const pages = data.pages || [];
+  const queryPage = new URL(window.location.href).searchParams.get("page");
+  const initialPage = queryPage || (pages.length > 0 ? pages[0].name : "Home.md");
 
-    const imageItem = Array.from(items).find((item) => item.type.startsWith("image/"));
-    if (!imageItem) return;
-
-    const file = imageItem.getAsFile();
-    if (!file) return;
-
-    e.preventDefault();
-
-    try {
-      const url = await uploadImage(file);
-      insertTextAtCursor(editorView, `![pasted image](${url})`);
-    } catch (err) {
-      alert(err.message);
-    }
-  },
-  true,
-);
-
-const initialPage = new URL(window.location.href).searchParams.get("page") || "Home.md";
+  try {
+    await refreshPageList(initialPage);
+    // Only show confirm if page was explicitly requested via URL
+    await openPage(initialPage, !!queryPage);
+  } catch (err) {
+    viewerEl.textContent = err.message;
+  }
+})();
 
 window.addEventListener("keydown", (e) => {
   if (!viewerEl.hidden && (e.target === document.body || viewerEl.contains(e.target))) {
@@ -414,9 +444,3 @@ window.addEventListener("keydown", (e) => {
     }
   }
 });
-
-refreshPageList(initialPage)
-  .then(() => openPage(initialPage))
-  .catch((err) => {
-    viewerEl.textContent = err.message;
-  });
