@@ -220,6 +220,7 @@ function rewriteInternalLinks(container) {
 
 function renderSideList(el, items, mapper) {
   el.innerHTML = "";
+  if (!items || !Array.isArray(items)) return;
   for (const item of items) {
     el.appendChild(mapper(item));
   }
@@ -227,10 +228,11 @@ function renderSideList(el, items, mapper) {
 
 async function refreshPageList(selectedPage = currentPage) {
   const data = await fetchPages();
-  knownPages = new Set(data.pages.map((p) => p.name));
+  const pages = data.pages || [];
+  knownPages = new Set(pages.map((p) => p.name));
   pageListEl.innerHTML = "";
 
-  for (const page of data.pages) {
+  for (const page of pages) {
     const li = document.createElement("li");
     const a = document.createElement("a");
     a.href = `/?page=${encodeURIComponent(page.name)}`;
@@ -258,7 +260,11 @@ async function openPage(name) {
     if (data.frontmatter?.title) {
       html += `<h1>${data.frontmatter.title}</h1>`;
     }
-    if (data.frontmatter?.tags && data.frontmatter.tags.length > 0) {
+    if (
+      data.frontmatter?.tags &&
+      Array.isArray(data.frontmatter.tags) &&
+      data.frontmatter.tags.length > 0
+    ) {
       html += `<div class="tags">${data.frontmatter.tags.map((t) => `<span class="tag">#${t}</span>`).join(" ")}</div>`;
     }
     html += data.html;
@@ -364,7 +370,7 @@ editorEl.addEventListener(
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    const imageItem = [...items].find((item) => item.type.startsWith("image/"));
+    const imageItem = Array.from(items).find((item) => item.type.startsWith("image/"));
     if (!imageItem) return;
 
     const file = imageItem.getAsFile();

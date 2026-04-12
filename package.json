@@ -15,23 +15,11 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "test": "node --test --experimental-test-coverage",
-    "dev": "node server.js",
     "lint": "oxlint",
     "fmt": "oxfmt"
   },
-  "dependencies": {
-    "@hono/node-server": "1.19.13",
-    "dotenv": "17.4.0",
-    "gray-matter": "4.0.3",
-    "highlight.js": "11.11.1",
-    "hono": "4.12.12",
-    "marked": "15.0.7",
-    "marked-highlight": "2.2.3"
-  },
   "devDependencies": {
     "oxfmt": "0.44.0",
-    "oxlint": "1.59.0",
-    "playwright": "1.59.1"
+    "oxlint": "1.59.0"
   }
 }

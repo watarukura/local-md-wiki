@@ -17,7 +17,7 @@
 
 ## 動作要件
 
-- Node.js 18+
+- Go 1.21+
 - aquaproj/aqua/aqua
 
 ---
@@ -25,7 +25,7 @@
 ## セットアップ
 
 ```bash
-pnpm install
+go mod tidy
 ```
 
 ---
@@ -33,7 +33,14 @@ pnpm install
 ## 起動
 
 ```bash
-pnpm dev
+go run .
+```
+
+または Makefile を使用してビルド・実行:
+
+```bash
+make build
+./mdwiki
 ```
 
 アクセス:
@@ -48,19 +55,16 @@ http://localhost:3000
 
 ```text
 .
-├── app.js
-├── server.js
+├── main.go            # Goバックエンド
 ├── public/
 │   ├── index.html
 │   ├── app.js
 │   ├── style.css
 │   └── uploads/       # 画像保存先
-├── pages/             # Markdownファイル
-│   ├── Home.md
-│   ├── AWS.md
-│   └── ECS.md
-└── test/
-    └── app.test.js
+└── pages/             # Markdownファイル
+    ├── Home.md
+    ├── AWS.md
+    └── ECS.md
 ```
 
 ---
@@ -136,10 +140,17 @@ console.log("hello");
 
 ---
 
-## テスト
+## 開発用コマンド
+
+Makefile を使用して開発に必要なコマンドを実行できます。
 
 ```bash
-pnpm test
+make build   # バイナリをビルド
+make test    # テストを実行
+make lint    # 静的解析を実行 (golangci-lint)
+make format  # コードを整形 (go fmt)
+make clean   # ビルド生成物を削除
+make help    # 利用可能なコマンドを表示
 ```
 
 ---
