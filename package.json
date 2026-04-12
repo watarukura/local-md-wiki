@@ -17,6 +17,7 @@
   "scripts": {
     "test": "node --test --experimental-test-coverage",
     "dev": "node server.js",
+    "build:bun": "bun build --compile ./server.js --outfile mdwiki && codesign --remove-signature mdwiki && codesign -s - mdwiki",
     "lint": "oxlint",
     "fmt": "oxfmt"
   },

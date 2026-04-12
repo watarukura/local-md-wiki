@@ -1,24 +1,22 @@
-import "dotenv/config"; // ← これを一番上に追加
+import "dotenv/config";
 
-import { serve } from "@hono/node-server";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { createApp } from "./app.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = createApp({
-  pagesDir: path.join(__dirname, "pages"),
-  publicDir: path.join(__dirname, "public"),
-  port: 3000,
-});
 
 const port = Number(process.env.LOCAL_MD_WIKI_PORT) || 3000;
 
-serve({
-  fetch: app.fetch,
-  port,
-});
+const app = createApp();
 
-console.log(`http://localhost:${port}`);
+if (typeof Bun !== "undefined") {
+  console.log(`Bun server running at http://localhost:${port}`);
+  Bun.serve({
+    fetch: app.fetch,
+    port,
+  });
+} else {
+  const { serve } = await import("@hono/node-server");
+  console.log(`Node server running at http://localhost:${port}`);
+  serve({
+    fetch: app.fetch,
+    port,
+  });
+}
