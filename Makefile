@@ -1,4 +1,4 @@
-NAME := mdwiki
+NAME := lwm
 VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0")
 REVISION := $(shell git rev-parse --short HEAD 2>/dev/null || echo "none")
 BUILD_DATE := $(shell date +%Y-%m-%dT%T%z)

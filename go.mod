@@ -1,4 +1,4 @@
-module github.com/watarukura/local-md-wiki
+module github.com/watarukura/lwm
 
 go 1.26.1
 
