@@ -1,7 +1,7 @@
 # lwm
 
-ローカル専用のMarkdown Wikiです。(lwm: **l**ocal **w**iki.**m**d)
-認証機能はないので、公開での使用はしないでください。
+ローカル専用のMarkdown Wikiです。(lwm: **l**ocal **w**iki.**m**d)  
+認証機能はないので、公開での使用はしないでください。  
 ブラウザから `.md` ファイルを編集し、backlinks / 2-hop links を確認できます。
 
 ---
