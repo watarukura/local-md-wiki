@@ -76,6 +76,35 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e)
   });
 });
 
+// Enable clipboard support for yank/paste
+Vim.defineOption("clipboard", "unnamed", "string", ["unnamed"], (value) => {
+  if (value === "unnamed") {
+    // Optional: add some logic here if needed
+  }
+});
+Vim.setOption("clipboard", "unnamed");
+
+// Bridge Vim's internal register with the system clipboard
+if (navigator.clipboard) {
+  try {
+    const controller = Vim.getRegisterController();
+    const unnamed = controller.unnamedRegister;
+    if (unnamed && typeof unnamed.setText === "function") {
+      const originalSetText = unnamed.setText;
+      unnamed.setText = function (text, type) {
+        originalSetText.call(this, text, type);
+        if (text) {
+          navigator.clipboard.writeText(text).catch((err) => {
+            console.error("Failed to write to clipboard:", err);
+          });
+        }
+      };
+    }
+  } catch (e) {
+    console.warn("Vim.getRegisterController is not available", e);
+  }
+}
+
 Vim.defineEx("write", "w", () => {
   saveButton.click();
 });
