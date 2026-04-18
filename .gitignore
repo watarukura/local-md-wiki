@@ -1,7 +1,7 @@
-pages/*.md
-public/uploads/*
+pages/
+public/uploads/
 node_modules/
 .env
 test-results/
 playwright-report/
-tests/pages/*.md
+tests/pages/
