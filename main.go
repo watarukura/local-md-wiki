@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -286,6 +287,8 @@ func createPage(c echo.Context) error {
 		return err
 	}
 
+	go gitCommit(pagesDir, fmt.Sprintf("Create page: %s", name))
+
 	return c.JSON(http.StatusOK, map[string]interface{}{"ok": true, "name": name})
 }
 
@@ -344,6 +347,8 @@ func updatePage(c echo.Context) error {
 		return err
 	}
 
+	go gitCommit(pagesDir, fmt.Sprintf("Update page: %s", name))
+
 	var htmlContent bytes.Buffer
 	_ = md.Convert(content, &htmlContent)
 	graph, _ := buildGraph()
@@ -382,6 +387,8 @@ func uploadFile(c echo.Context) error {
 	if _, err = io.Copy(dst, src); err != nil {
 		return err
 	}
+
+	go gitCommit(uploadsDir, fmt.Sprintf("Upload file: %s", fileName))
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"ok":  true,
@@ -555,4 +562,37 @@ func stringifyFrontmatter(content []byte, data map[string]interface{}) (string, 
 		return "", err
 	}
 	return "---\n" + string(fm) + "---\n" + string(content), nil
+}
+
+func gitCommit(dir, message string) {
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		fmt.Printf("failed to get absolute path for %s: %v\n", dir, err)
+		return
+	}
+
+	// Initialize git repository if not exists
+	if _, err := os.Stat(filepath.Join(absDir, ".git")); os.IsNotExist(err) {
+		initCmd := exec.Command("git", "init")
+		initCmd.Dir = absDir
+		if err := initCmd.Run(); err != nil {
+			fmt.Printf("git init error in %s: %v\n", absDir, err)
+			return
+		}
+	}
+
+	// Add all changes
+	addCmd := exec.Command("git", "add", ".")
+	addCmd.Dir = absDir
+	if err := addCmd.Run(); err != nil {
+		fmt.Printf("git add error in %s: %v\n", absDir, err)
+		return
+	}
+
+	// Commit changes
+	// If there are no changes, git commit returns 1. We ignore this error.
+	// We use --no-verify to skip pre-commit hooks as we want it to be fast and quiet.
+	commitCmd := exec.Command("git", "commit", "-m", message, "--no-verify")
+	commitCmd.Dir = absDir
+	_ = commitCmd.Run()
 }
