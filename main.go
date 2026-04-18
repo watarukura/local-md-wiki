@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"fmt"
 	"io"
@@ -381,7 +382,26 @@ func uploadFile(c echo.Context) error {
 	}
 	defer func() { _ = src.Close() }()
 
-	ext := filepath.Ext(file.Filename)
+	// Security: Use filepath.Base to prevent directory traversal
+	baseName := filepath.Base(file.Filename)
+	ext := filepath.Ext(baseName)
+
+	// Optional: restrict extensions (e.g., only allow images, pdf, zip, md)
+	allowedExts := map[string]bool{
+		".png":  true,
+		".jpg":  true,
+		".jpeg": true,
+		".gif":  true,
+		".svg":  true,
+		".pdf":  true,
+		".zip":  true,
+		".md":   true,
+		".txt":  true,
+	}
+	if !allowedExts[strings.ToLower(ext)] {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "file type not allowed"})
+	}
+
 	fileName := fmt.Sprintf("%d-%s%s", time.Now().UnixNano(), "rand", ext)
 	fullPath := filepath.Join(uploadsDir, fileName)
 
@@ -569,8 +589,12 @@ func searchPages(c echo.Context) error {
 		return c.JSON(http.StatusOK, []SearchResult{})
 	}
 
-	// grep -rni --exclude-dir=.git -- query pages/
-	cmd := exec.Command("grep", "-rni", "--exclude-dir=.git", "--", query, pagesDir)
+	// 5 seconds timeout for search
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 5*time.Second)
+	defer cancel()
+
+	// grep -rni --exclude-dir=.git --include="*.md" -- query pages/
+	cmd := exec.CommandContext(ctx, "grep", "-rni", "--exclude-dir=.git", "--include=*.md", "--", query, pagesDir)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	_ = cmd.Run() // grep returns 1 if no matches, which is fine
@@ -625,9 +649,13 @@ func gitCommit(dir, message string) {
 		return
 	}
 
+	// 10 seconds timeout for git operations
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	// Initialize git repository if not exists
 	if _, err := os.Stat(filepath.Join(absDir, ".git")); os.IsNotExist(err) {
-		initCmd := exec.Command("git", "init")
+		initCmd := exec.CommandContext(ctx, "git", "init")
 		initCmd.Dir = absDir
 		if err := initCmd.Run(); err != nil {
 			fmt.Printf("git init error in %s: %v\n", absDir, err)
@@ -636,7 +664,7 @@ func gitCommit(dir, message string) {
 	}
 
 	// Add all changes
-	addCmd := exec.Command("git", "add", ".")
+	addCmd := exec.CommandContext(ctx, "git", "add", ".")
 	addCmd.Dir = absDir
 	if err := addCmd.Run(); err != nil {
 		fmt.Printf("git add error in %s: %v\n", absDir, err)
@@ -646,7 +674,7 @@ func gitCommit(dir, message string) {
 	// Commit changes
 	// If there are no changes, git commit returns 1. We ignore this error.
 	// We use --no-verify to skip pre-commit hooks as we want it to be fast and quiet.
-	commitCmd := exec.Command("git", "commit", "-m", message, "--no-verify")
+	commitCmd := exec.CommandContext(ctx, "git", "commit", "-m", message, "--no-verify")
 	commitCmd.Dir = absDir
 	_ = commitCmd.Run()
 }
