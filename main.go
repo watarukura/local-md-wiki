@@ -41,6 +41,12 @@ type PageInfo struct {
 	Title string `json:"title"`
 }
 
+type SearchResult struct {
+	File    string `json:"file"`
+	Line    int    `json:"line"`
+	Content string `json:"content"`
+}
+
 type PageResponse struct {
 	Name        string      `json:"name"`
 	Markdown    string      `json:"markdown"`
@@ -121,6 +127,7 @@ func main() {
 	// API
 	e.GET("/api/pages", listPages)
 	e.GET("/api/page", getPage)
+	e.GET("/api/search", searchPages)
 	e.POST("/api/page", createPage)
 	e.PUT("/api/page", updatePage)
 	e.POST("/api/upload", uploadFile)
@@ -406,6 +413,9 @@ func listMarkdownFiles(dir, base string) ([]string, error) {
 	}
 
 	for _, entry := range entries {
+		if entry.IsDir() && entry.Name() == ".git" {
+			continue
+		}
 		rel := filepath.Join(base, entry.Name())
 		full := filepath.Join(dir, entry.Name())
 
@@ -551,6 +561,50 @@ func twoHopOf(target string, graph map[string][]string) []TwoHop {
 	})
 
 	return result
+}
+
+func searchPages(c echo.Context) error {
+	query := c.QueryParam("q")
+	if query == "" {
+		return c.JSON(http.StatusOK, []SearchResult{})
+	}
+
+	// grep -rni --exclude-dir=.git -- query pages/
+	cmd := exec.Command("grep", "-rni", "--exclude-dir=.git", "--", query, pagesDir)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	_ = cmd.Run() // grep returns 1 if no matches, which is fine
+
+	results := []SearchResult{}
+	lines := strings.Split(out.String(), "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, ":", 3)
+		if len(parts) < 3 {
+			continue
+		}
+
+		file := parts[0]
+		// Remove pagesDir prefix from file path
+		relFile, err := filepath.Rel(pagesDir, file)
+		if err == nil {
+			file = relFile
+		}
+
+		lineNum := 0
+		_, _ = fmt.Sscanf(parts[1], "%d", &lineNum)
+		content := strings.TrimSpace(parts[2])
+
+		results = append(results, SearchResult{
+			File:    file,
+			Line:    lineNum,
+			Content: content,
+		})
+	}
+
+	return c.JSON(http.StatusOK, results)
 }
 
 func stringifyFrontmatter(content []byte, data map[string]interface{}) (string, error) {

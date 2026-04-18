@@ -10,6 +10,8 @@ const viewerEl = document.getElementById("viewer");
 const editorEl = document.getElementById("editor");
 const backlinksEl = document.getElementById("backlinks");
 const twoHopEl = document.getElementById("twohop");
+const searchInputEl = document.getElementById("search-input");
+const searchResultsEl = document.getElementById("search-results");
 
 const saveButton = document.getElementById("save-button");
 const editButton = document.getElementById("edit-button");
@@ -349,6 +351,10 @@ async function openPage(name, showConfirm = true) {
     layoutEl.classList.remove("sidebar-open");
     layoutEl.classList.remove("meta-open");
 
+    searchResultsEl.hidden = true;
+    searchResultsEl.innerHTML = "";
+    searchInputEl.value = "";
+
     const url = new URL(window.location.href);
     url.searchParams.set("page", currentPage);
     history.replaceState({}, "", url);
@@ -447,6 +453,56 @@ newPageButton.addEventListener("click", async () => {
     setEditing(true);
   } catch (err) {
     alert(err.message);
+  }
+});
+
+searchInputEl.addEventListener("input", async (e) => {
+  const query = e.target.value.trim();
+  if (!query) {
+    searchResultsEl.hidden = true;
+    searchResultsEl.innerHTML = "";
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    if (!res.ok) return;
+    const results = await res.json();
+
+    if (results.length === 0) {
+      searchResultsEl.innerHTML = "<li>No results</li>";
+    } else {
+      searchResultsEl.innerHTML = "";
+      const grouped = results.reduce((acc, curr) => {
+        if (!acc[curr.file]) acc[curr.file] = [];
+        acc[curr.file].push(curr);
+        return acc;
+      }, {});
+
+      for (const [file, matches] of Object.entries(grouped)) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = "#";
+        a.className = "file-name";
+        a.textContent = file;
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          openPage(file);
+        });
+        li.appendChild(a);
+
+        matches.forEach((match) => {
+          const span = document.createElement("span");
+          span.className = "match-content";
+          span.textContent = `L${match.line}: ${match.content}`;
+          li.appendChild(span);
+        });
+        searchResultsEl.appendChild(li);
+      }
+    }
+    searchResultsEl.hidden = false;
+  } catch (err) {
+    console.error("Search error:", err);
   }
 });
 
