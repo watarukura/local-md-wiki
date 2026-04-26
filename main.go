@@ -62,6 +62,17 @@ type TwoHop struct {
 	Score int    `json:"score"`
 }
 
+type CommitInfo struct {
+	Hash    string    `json:"hash"`
+	Author  string    `json:"author"`
+	Date    time.Time `json:"date"`
+	Subject string    `json:"subject"`
+}
+
+type DiffInfo struct {
+	Diff string `json:"diff"`
+}
+
 var (
 	pagesDir   = "pages"
 	uploadsDir = filepath.Join("public", "uploads")
@@ -132,6 +143,9 @@ func main() {
 	e.POST("/api/page", createPage)
 	e.PUT("/api/page", updatePage)
 	e.POST("/api/upload", uploadFile)
+	e.GET("/api/git/log", getGitLog)
+	e.GET("/api/git/diff", getGitDiff)
+	e.POST("/api/git/checkout", checkoutCommit)
 
 	// Serve index.html for all other routes
 	e.GET("/*", func(c echo.Context) error {
@@ -677,4 +691,91 @@ func gitCommit(dir, message string) {
 	commitCmd := exec.CommandContext(ctx, "git", "commit", "-m", message, "--no-verify")
 	commitCmd.Dir = absDir
 	_ = commitCmd.Run()
+}
+
+func getGitLog(c echo.Context) error {
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 10*time.Second)
+	defer cancel()
+
+	file := c.QueryParam("file")
+	args := []string{"log", "--all", "--pretty=format:%H|%an|%ai|%s", "-n", "50"}
+	if file != "" {
+		args = append(args, "--", file)
+	}
+
+	cmd := exec.CommandContext(ctx, "git", args...)
+	cmd.Dir = pagesDir
+	output, err := cmd.Output()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	lines := strings.Split(string(output), "\n")
+	commits := []CommitInfo{}
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, "|", 4)
+		if len(parts) < 4 {
+			continue
+		}
+		t, _ := time.Parse("2006-01-02 15:04:05 -0700", parts[2])
+		commits = append(commits, CommitInfo{
+			Hash:    parts[0],
+			Author:  parts[1],
+			Date:    t,
+			Subject: parts[3],
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{"commits": commits})
+}
+
+func getGitDiff(c echo.Context) error {
+	hash := c.QueryParam("hash")
+	if hash == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "hash is required"})
+	}
+	file := c.QueryParam("file")
+
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 10*time.Second)
+	defer cancel()
+
+	args := []string{"show", hash}
+	if file != "" {
+		args = append(args, "--", file)
+	}
+
+	cmd := exec.CommandContext(ctx, "git", args...)
+	cmd.Dir = pagesDir
+	output, err := cmd.Output()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, DiffInfo{Diff: string(output)})
+}
+
+func checkoutCommit(c echo.Context) error {
+	var req struct {
+		Hash string `json:"hash"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+	if req.Hash == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "hash is required"})
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 10*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", "checkout", req.Hash)
+	cmd.Dir = pagesDir
+	err := cmd.Run()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.NoContent(http.StatusOK)
 }

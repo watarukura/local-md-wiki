@@ -50,7 +50,22 @@
           <h2>2-hop links</h2>
           <ul id="twohop"></ul>
         </section>
+        <section>
+          <h2>Git History</h2>
+          <ul id="git-log" class="git-log"></ul>
+        </section>
       </aside>
+    </div>
+
+    <div id="git-diff-viewer" class="git-diff-viewer" hidden>
+      <div class="git-diff-header">
+        <h3>Commit Diff</h3>
+        <div class="git-diff-actions">
+          <button id="checkout-button" type="button">Checkout</button>
+          <button id="close-diff-button" type="button">Close</button>
+        </div>
+      </div>
+      <pre><code id="git-diff-content" class="hljs language-diff"></code></pre>
     </div>
 
     <script type="module" src="/static/app.js"></script>

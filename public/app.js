@@ -3,6 +3,10 @@ import { Compartment } from "https://esm.sh/@codemirror/state";
 import { oneDark } from "https://esm.sh/@codemirror/theme-one-dark";
 import { Vim, vim } from "https://esm.sh/@replit/codemirror-vim";
 import { markdown } from "https://esm.sh/@codemirror/lang-markdown";
+import hljs from "https://esm.sh/highlight.js/lib/core";
+import diff from "https://esm.sh/highlight.js/lib/languages/diff";
+
+hljs.registerLanguage("diff", diff);
 
 const pageListEl = document.getElementById("page-list");
 const pageNameEl = document.getElementById("page-name");
@@ -12,6 +16,11 @@ const backlinksEl = document.getElementById("backlinks");
 const twoHopEl = document.getElementById("twohop");
 const searchInputEl = document.getElementById("search-input");
 const searchResultsEl = document.getElementById("search-results");
+const gitLogEl = document.getElementById("git-log");
+const gitDiffViewerEl = document.getElementById("git-diff-viewer");
+const gitDiffContentEl = document.getElementById("git-diff-content");
+const closeDiffButton = document.getElementById("close-diff-button");
+const checkoutButton = document.getElementById("checkout-button");
 
 const saveButton = document.getElementById("save-button");
 const editButton = document.getElementById("edit-button");
@@ -343,6 +352,8 @@ async function openPage(name, showConfirm = true) {
     await refreshPageList(currentPage);
     rewriteInternalLinks(viewerEl);
 
+    fetchGitLog(currentPage);
+
     renderSideList(backlinksEl, data.backlinks, (page) => linkItem(page));
     renderSideList(twoHopEl, data.twoHop, (item) => linkItem(item.page, `shared: ${item.score}`));
 
@@ -383,6 +394,7 @@ async function openPage(name, showConfirm = true) {
       viewerEl.innerHTML = "";
 
       await refreshPageList(currentPage);
+      fetchGitLog(currentPage);
       setEditing(true);
 
       const url = new URL(window.location.href);
@@ -506,11 +518,75 @@ searchInputEl.addEventListener("input", async (e) => {
   }
 });
 
+let currentDiffHash = "";
+
+async function fetchGitLog(file = "") {
+  try {
+    const res = await fetch(`/api/git/log${file ? `?file=${encodeURIComponent(file)}` : ""}`);
+    const data = await res.json();
+    gitLogEl.innerHTML = "";
+    (data.commits || []).forEach((commit) => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span class="commit-subject">${commit.subject}</span>
+        <span class="commit-hash">${commit.hash.substring(0, 7)} - ${commit.author} - ${new Date(commit.date).toLocaleString()}</span>
+      `;
+      li.addEventListener("click", () => showDiff(commit.hash));
+      gitLogEl.appendChild(li);
+    });
+  } catch (err) {
+    console.error("Failed to fetch git log:", err);
+  }
+}
+
+async function showDiff(hash) {
+  try {
+    const res = await fetch(`/api/git/diff?hash=${hash}&file=${encodeURIComponent(currentPage)}`);
+    const data = await res.json();
+    const highlighted = hljs.highlight(data.diff, { language: "diff" }).value;
+    gitDiffContentEl.innerHTML = highlighted;
+    gitDiffViewerEl.hidden = false;
+    currentDiffHash = hash;
+  } catch (err) {
+    console.error("Failed to fetch git diff:", err);
+  }
+}
+
+closeDiffButton.addEventListener("click", () => {
+  gitDiffViewerEl.hidden = true;
+});
+
+checkoutButton.addEventListener("click", async () => {
+  if (!confirm(`Are you sure you want to checkout commit ${currentDiffHash.substring(0, 7)}?`)) {
+    return;
+  }
+  try {
+    const res = await fetch("/api/git/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ hash: currentDiffHash }),
+    });
+    if (res.ok) {
+      alert("Checked out successfully. Reloading page...");
+      window.location.reload();
+    } else {
+      const data = await res.json();
+      alert(`Failed to checkout: ${data.error}`);
+    }
+  } catch (err) {
+    console.error("Failed to checkout commit:", err);
+  }
+});
+
 (async () => {
   const data = await fetchPages();
   const pages = data.pages || [];
   const queryPage = new URL(window.location.href).searchParams.get("page");
   const initialPage = queryPage || (pages.length > 0 ? pages[0].name : "Home.md");
+
+  fetchGitLog(initialPage);
 
   try {
     await refreshPageList(initialPage);
