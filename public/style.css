@@ -318,3 +318,77 @@ code {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.git-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.git-log li {
+  padding: 8px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.git-log li:hover {
+  background-color: var(--code-bg);
+}
+
+.git-log .commit-hash {
+  font-family: monospace;
+  color: var(--tag-color);
+  font-size: 11px;
+}
+
+.git-log .commit-subject {
+  display: block;
+  font-weight: bold;
+}
+
+.git-diff-viewer {
+  position: fixed;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  height: 80%;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.git-diff-header {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.git-diff-header h3 {
+  margin: 0;
+}
+
+.git-diff-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.git-diff-viewer pre {
+  flex: 1;
+  margin: 0;
+  overflow: auto;
+  background-color: var(--pre-bg);
+}
+
+#git-diff-content {
+  display: block;
+  padding: 12px;
+  color: var(--pre-color);
+  font-family: monospace;
+  white-space: pre-wrap;
+}
