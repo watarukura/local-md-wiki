@@ -21,6 +21,11 @@ test-e2e: ## Run e2e tests
 	echo "# Test Home" > tests/pages/Home.md
 	pnpm test:e2e
 
+.PHONY: test-cov
+test-cov: ## Run tests with coverage
+	go test -v -coverprofile=coverage.out ./...
+	go tool cover -func=coverage.out
+
 .PHONY: lint
 lint: ## Run linting
 	golangci-lint run ./...
