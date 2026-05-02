@@ -344,7 +344,7 @@ async function openPage(name, showConfirm = true) {
       Array.isArray(data.frontmatter.tags) &&
       data.frontmatter.tags.length > 0
     ) {
-      html += `<div class="tags">${data.frontmatter.tags.map((t) => `<span class="tag">#${t}</span>`).join(" ")}</div>`;
+      html += `<div class="tags">${data.frontmatter.tags.map((t) => `<a href="${encodeURIComponent(t)}.md" class="tag">#${t}</a>`).join(" ")}</div>`;
     }
     html += data.html;
     viewerEl.innerHTML = html;
