@@ -85,7 +85,30 @@ func buildGraph() (map[string][]string, error) {
 		content, _ := os.ReadFile(filepath.Join(pagesDir, file))
 		var data map[string]interface{}
 		rest, _ := frontmatter.Parse(bytes.NewReader(content), &data)
-		graph[file] = extractInternalLinks(string(rest), file)
+		links := extractInternalLinks(string(rest), file)
+		seen := make(map[string]bool)
+		for _, link := range links {
+			seen[link] = true
+		}
+
+		if tags, ok := data["tags"].([]interface{}); ok {
+			currentDir := filepath.Dir(file)
+			for _, tag := range tags {
+				if t, ok := tag.(string); ok {
+					// Treat tags as relative links to the current directory,
+					// matching the behavior of the frontend.
+					resolved := filepath.ToSlash(filepath.Clean(filepath.Join(currentDir, t+".md")))
+					if !strings.HasPrefix(resolved, "../") && resolved != ".." {
+						if !seen[resolved] {
+							links = append(links, resolved)
+							seen[resolved] = true
+						}
+					}
+				}
+			}
+		}
+
+		graph[file] = links
 	}
 	return graph, nil
 }

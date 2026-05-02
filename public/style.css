@@ -213,6 +213,15 @@ code {
   border-radius: 4px;
   font-size: 12px;
   color: var(--tag-color);
+  text-decoration: none;
+}
+
+.tag:hover {
+  text-decoration: underline;
+}
+
+.tag.missing-link {
+  color: var(--missing-link);
 }
 
 .meta-toolbar {
