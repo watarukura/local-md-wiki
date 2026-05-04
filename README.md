@@ -40,7 +40,7 @@ go run .
 
 ```bash
 make build
-./mdwiki
+./lwm
 ```
 
 アクセス:
