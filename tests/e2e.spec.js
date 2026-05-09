@@ -113,4 +113,27 @@ test.describe("Local MD Wiki E2E", () => {
     const editorBg = await editor.evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(editorBg).not.toBe("rgb(255, 255, 255)");
   });
+
+  test("Should render mermaid diagram", async ({ page }) => {
+    // Create a page with mermaid content
+    const newPageName = "MermaidTest.md";
+    await page.goto("/");
+    await expect(page.locator("#edit-button")).toBeVisible();
+
+    page.once("dialog", async (dialog) => {
+      await dialog.accept(newPageName);
+    });
+    await page.click("#new-page-button");
+
+    const cmContent = page.locator(".cm-content");
+    await cmContent.click();
+    await cmContent.fill("```mermaid\ngraph TD\nA --> B\n```");
+    await page.click("#save-button");
+
+    // Wait for mermaid to render. Mermaid generates an svg.
+    const mermaidDiv = page.locator(".mermaid");
+    await expect(mermaidDiv).toBeVisible({ timeout: 15000 });
+    const svg = mermaidDiv.locator("svg");
+    await expect(svg).toBeVisible({ timeout: 15000 });
+  });
 });

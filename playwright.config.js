@@ -19,7 +19,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "go run main.go --port 3000 --pages ./tests/pages --uploads ./tests/public/uploads",
+    command: "go run . --port 3000 --pages ./tests/pages --uploads ./tests/public/uploads",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     stdout: "pipe",
