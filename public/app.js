@@ -5,6 +5,9 @@ import { Vim, vim } from "https://esm.sh/@replit/codemirror-vim";
 import { markdown } from "https://esm.sh/@codemirror/lang-markdown";
 import hljs from "https://esm.sh/highlight.js/lib/core";
 import diff from "https://esm.sh/highlight.js/lib/languages/diff";
+import mermaid from "https://esm.sh/mermaid";
+
+mermaid.initialize({ startOnLoad: false });
 
 hljs.registerLanguage("diff", diff);
 
@@ -348,6 +351,20 @@ async function openPage(name, showConfirm = true) {
     }
     html += data.html;
     viewerEl.innerHTML = html;
+
+    const mermaidBlocks = viewerEl.querySelectorAll(".language-mermaid");
+    if (mermaidBlocks.length > 0) {
+      for (const block of mermaidBlocks) {
+        const pre = block.parentElement;
+        const container = document.createElement("div");
+        container.className = "mermaid";
+        container.textContent = block.textContent;
+        pre.replaceWith(container);
+      }
+      await mermaid.run({
+        nodes: viewerEl.querySelectorAll(".mermaid"),
+      });
+    }
 
     await refreshPageList(currentPage);
     rewriteInternalLinks(viewerEl);
