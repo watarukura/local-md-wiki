@@ -1,3 +1,4 @@
+---
 apiVersion: gh-infra/v1
 kind: Repository
 metadata:
