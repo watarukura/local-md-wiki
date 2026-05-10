@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -12,6 +14,10 @@ import (
 )
 
 func TestListPages(t *testing.T) {
+	orig := setupPagesTest(t)
+	defer teardownPagesTest(orig)
+	_ = os.WriteFile(filepath.Join(pagesDir, "Home.md"), []byte("# Home"), 0644)
+
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/api/pages", nil)
 	rec := httptest.NewRecorder()
@@ -27,6 +33,10 @@ func TestListPages(t *testing.T) {
 }
 
 func TestGetPage(t *testing.T) {
+	orig := setupPagesTest(t)
+	defer teardownPagesTest(orig)
+	_ = os.WriteFile(filepath.Join(pagesDir, "Home.md"), []byte("# Home"), 0644)
+
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/api/page?name=Home.md", nil)
 	rec := httptest.NewRecorder()
@@ -42,6 +52,10 @@ func TestGetPage(t *testing.T) {
 }
 
 func TestUpdatePage(t *testing.T) {
+	orig := setupPagesTest(t)
+	defer teardownPagesTest(orig)
+	_ = os.WriteFile(filepath.Join(pagesDir, "Home.md"), []byte("# Home"), 0644)
+
 	e := echo.New()
 	body := `{"name":"Home.md","markdown":"no frontmatter content"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/page", strings.NewReader(body)) // test create via POST

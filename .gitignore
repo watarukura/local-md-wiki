@@ -1,4 +1,6 @@
-pages/
+pages/*
+!pages/.gitkeep
+!pages/Home.md
 public/uploads/
 node_modules/
 .env
