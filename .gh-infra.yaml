@@ -2,7 +2,7 @@
 apiVersion: gh-infra/v1
 kind: Repository
 metadata:
-  name: local-md-wiki
+  name: lwm
   owner: watarukura
 spec:
   description: ""

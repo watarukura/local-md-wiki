@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/pflag"
+	ver "github.com/watarukura/lwm/version"
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/yuin/goldmark/extension"
@@ -24,7 +25,8 @@ import (
 var publicFS embed.FS
 
 var (
-	version = "1.0.0"
+	version = ver.Version
+	binary  = ver.Name
 	commit  = "none"
 	date    = "unknown"
 )
@@ -96,13 +98,13 @@ func main() {
 	)
 
 	pflag.BoolVarP(&showVersion, "version", "v", false, "show version")
-	pflag.StringVarP(&port, "port", "p", getEnv("LOCAL_MD_WIKI_PORT", "3000"), "port to listen on")
-	pflag.StringVarP(&pagesDir, "pages", "d", getEnv("LOCAL_MD_WIKI_PAGES_DIR", "pages"), "pages directory")
-	pflag.StringVarP(&uploadsDir, "uploads", "u", getEnv("LOCAL_MD_WIKI_UPLOADS_DIR", filepath.Join("public", "uploads")), "uploads directory")
+	pflag.StringVarP(&port, "port", "p", getEnv("LWM_PORT", "3000"), "port to listen on")
+	pflag.StringVarP(&pagesDir, "pages", "d", getEnv("LWM_PAGES_DIR", "pages"), "pages directory")
+	pflag.StringVarP(&uploadsDir, "uploads", "u", getEnv("LWM_UPLOADS_DIR", filepath.Join("public", "uploads")), "uploads directory")
 	pflag.Parse()
 
 	if showVersion {
-		fmt.Printf("mdwiki version %s (%s) built at %s\n", version, commit, date)
+		fmt.Printf("%s version %s (%s) built at %s\n", binary, version, commit, date)
 		return
 	}
 

@@ -1,16 +1,16 @@
 {
-  "name": "local-md-wiki",
+  "name": "lwm",
   "version": "1.0.0",
   "description": "",
-  "homepage": "https://github.com/watarukura/local-md-wiki#readme",
+  "homepage": "https://github.com/watarukura/lwm#readme",
   "bugs": {
-    "url": "https://github.com/watarukura/local-md-wiki/issues"
+    "url": "https://github.com/watarukura/lwm/issues"
   },
   "license": "MIT",
   "author": "watarukura",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/watarukura/local-md-wiki.git"
+    "url": "git+https://github.com/watarukura/lwm.git"
   },
   "type": "module",
   "main": "server.js",
