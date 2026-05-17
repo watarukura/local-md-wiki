@@ -1,5 +1,8 @@
 # Changelog
 
+## [v1.0.1](https://github.com/watarukura/lwm/compare/v1.0.0...v1.0.1) - 2026-05-17
+- chore/can approve pr by @watarukura in https://github.com/watarukura/lwm/pull/38
+
 ## [v1.0.0](https://github.com/watarukura/lwm/commits/v1.0.0) - 2026-05-17
 - feat/paste image by @watarukura in https://github.com/watarukura/lwm/pull/1
 - chore/no need node modules dir by @watarukura in https://github.com/watarukura/lwm/pull/2
