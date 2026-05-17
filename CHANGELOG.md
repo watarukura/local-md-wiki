@@ -1,0 +1,35 @@
+# Changelog
+
+## [v1.0.0](https://github.com/watarukura/lwm/commits/v1.0.0) - 2026-05-17
+- feat/paste image by @watarukura in https://github.com/watarukura/lwm/pull/1
+- chore/no need node modules dir by @watarukura in https://github.com/watarukura/lwm/pull/2
+- ci/linters by @watarukura in https://github.com/watarukura/lwm/pull/3
+- ci: gh-infra by @watarukura in https://github.com/watarukura/lwm/pull/4
+- feat/syntax highlight by @watarukura in https://github.com/watarukura/lwm/pull/5
+- feat/syntax highlight by @watarukura in https://github.com/watarukura/lwm/pull/6
+- feat/envfile by @watarukura in https://github.com/watarukura/lwm/pull/7
+- feat/404 to new file by @watarukura in https://github.com/watarukura/lwm/pull/8
+- ci: use renovate by @watarukura in https://github.com/watarukura/lwm/pull/9
+- feat: frontmatter by @watarukura in https://github.com/watarukura/lwm/pull/12
+- fix: use Edit Button by @watarukura in https://github.com/watarukura/lwm/pull/14
+- feat: responsive design by @watarukura in https://github.com/watarukura/lwm/pull/15
+- feat/responsive by @watarukura in https://github.com/watarukura/lwm/pull/16
+- chore/use pnpm by @watarukura in https://github.com/watarukura/lwm/pull/17
+- docs: npm -> pnpm by @watarukura in https://github.com/watarukura/lwm/pull/18
+- fix/code block by @watarukura in https://github.com/watarukura/lwm/pull/19
+- feat: migrate to go by @watarukura in https://github.com/watarukura/lwm/pull/21
+- test: e2e by @watarukura in https://github.com/watarukura/lwm/pull/22
+- test/e2e by @watarukura in https://github.com/watarukura/lwm/pull/23
+- fix: restore image paste feature by @watarukura in https://github.com/watarukura/lwm/pull/24
+- chore: rename product by @watarukura in https://github.com/watarukura/lwm/pull/25
+- feat: yank to clipboard by @watarukura in https://github.com/watarukura/lwm/pull/26
+- feat: git backend by @watarukura in https://github.com/watarukura/lwm/pull/27
+- feat: grep by @watarukura in https://github.com/watarukura/lwm/pull/28
+- test: security by @watarukura in https://github.com/watarukura/lwm/pull/29
+- feat: git log by @watarukura in https://github.com/watarukura/lwm/pull/30
+- test: coverate over 80% by @watarukura in https://github.com/watarukura/lwm/pull/31
+- feat: tags to link by @watarukura in https://github.com/watarukura/lwm/pull/32
+- docs: binary name changed by @watarukura in https://github.com/watarukura/lwm/pull/33
+- feat: mermaid by @watarukura in https://github.com/watarukura/lwm/pull/34
+- ci/gha by @watarukura in https://github.com/watarukura/lwm/pull/35
+- ci: use tagpr by @watarukura in https://github.com/watarukura/lwm/pull/36
