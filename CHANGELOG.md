@@ -27,7 +27,7 @@
 - feat: grep by @watarukura in https://github.com/watarukura/lwm/pull/28
 - test: security by @watarukura in https://github.com/watarukura/lwm/pull/29
 - feat: git log by @watarukura in https://github.com/watarukura/lwm/pull/30
-- test: coverate over 80% by @watarukura in https://github.com/watarukura/lwm/pull/31
+- test: coverage over 80% by @watarukura in https://github.com/watarukura/lwm/pull/31
 - feat: tags to link by @watarukura in https://github.com/watarukura/lwm/pull/32
 - docs: binary name changed by @watarukura in https://github.com/watarukura/lwm/pull/33
 - feat: mermaid by @watarukura in https://github.com/watarukura/lwm/pull/34
